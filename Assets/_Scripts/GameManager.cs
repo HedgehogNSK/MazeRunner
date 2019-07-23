@@ -2,14 +2,13 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CS_GameManager : MonoBehaviour
+public class GameManager : MonoBehaviour
 {
-    public CS_MazeCell mazeCellPrefab;
-    private CS_MazeCell mazeCellInstance;
-    private CS_MazeCell[,] cells;
+    public Maze.Cell mazeCellPrefab;
+    private Maze.Cell[,] cells;
 
-    public CS_Maze mazePrefab;
-    private CS_Maze mazeInstance;
+    public Maze.Maze mazePrefab;
+    private Maze.Maze mazeInstance;
     // Start is called before the first frame update
     void Start()
     {
@@ -27,7 +26,7 @@ public class CS_GameManager : MonoBehaviour
 
     void BeginGame()
     {
-        mazeInstance = Instantiate(mazePrefab) as CS_Maze;
+        mazeInstance = Instantiate(mazePrefab) as Maze.Maze;
         StartCoroutine(mazeInstance.Generate());
       
     }

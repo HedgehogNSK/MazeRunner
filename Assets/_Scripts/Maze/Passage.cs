@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace MazeGame
+namespace Maze
 {
-    public class Maze
+    public class Passage : CellEdge
     {
-        
+
     }
 }
