@@ -69,7 +69,7 @@ namespace MazeGame
         void BeginGame()
         {
             mazeInstance = Instantiate(mazePrefab) as Maze.Maze;
-            mazeInstance.GenerateLabirynth();
+            mazeInstance.Generate();
             //player = Instantiate(playerPrefab) as PlayerController;
 
         }

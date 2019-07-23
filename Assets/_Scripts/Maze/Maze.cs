@@ -15,20 +15,23 @@ namespace Maze
         public CellCoordinates Size { get { return mazeSize; } }
 
         private Cell[,] cells;
-        
-        public void GenerateLabirynth()
+
+        public void Generate()
         {
             var watch = System.Diagnostics.Stopwatch.StartNew();
             cells = new Cell[mazeSize.x, mazeSize.y];
             List<Cell> activeCells = new List<Cell>();
             DoFirstGenerationStep(activeCells);
+            int i = 0;
             while (activeCells.Count > 0)
             {
-                DoNextGenerationStep(activeCells);                
+
+                DoNextGenerationStep(activeCells);
+                ++i;
             }
             watch.Stop();
-            Debug.Log("Загрузка лабиринта заняла: " + watch.ElapsedMilliseconds/100 + " секунд");
-            
+            Debug.Log("Загрузка лабиринта заняла: " + watch.ElapsedMilliseconds / 1000f + " секунд и "+i+" циклов" );
+
         }
 
         private Cell CreateCell(CellCoordinates coords)
@@ -39,7 +42,7 @@ namespace Maze
             newCell.name = "MazeCell" + coords.x + "," + coords.y;
             newCell.transform.parent = transform;
             //For Camera in 0,0,0 make Labirinth in the center
-            newCell.transform.localPosition = new Vector3(coords.x - mazeSize.x * 0.5f + 0.5f, coords.y - mazeSize.y * 0.5f + 0.5f,0f);
+            newCell.transform.localPosition = new Vector3(coords.x - mazeSize.x * 0.5f + 0.5f, coords.y - mazeSize.y * 0.5f + 0.5f, 0f);
             return newCell;
         }
 
@@ -78,8 +81,10 @@ namespace Maze
             }
             Direction direction;
 
+            var watch = System.Diagnostics.Stopwatch.StartNew();
             direction = currentCell.RandomUninitialisedDirection;
-
+            watch.Stop();
+            Debug.Log(watch.ElapsedMilliseconds);
 
             CellCoordinates coords = currentCell.coords + direction.ToIntVector2();
             if (ContainsCoordinates(coords))
