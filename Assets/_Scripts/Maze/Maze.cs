@@ -6,40 +6,41 @@ namespace Maze
 {
     public class Maze : MonoBehaviour
     {
-        public Passage mazePassagePrefab;
-        public Wall mazeWallPrefab;
-        public CellCoordinates mazeSize;
-        public Cell mazeCellPrefab;
-        private Cell mazeCellInstance;
+        [Range(1, 700)]
+        [SerializeField] int visualizationSpeed =1;
+        [SerializeField] Passage mazePassagePrefab;
+        [SerializeField] Wall mazeWallPrefab;
+        [SerializeField] Cell mazeCellPrefab;
+        [SerializeField] CellCoordinates mazeSize;
+        public CellCoordinates Size { get { return mazeSize; } }
+
         private Cell[,] cells;
-
-        public float fGenerationStopDelay;
-
-        public IEnumerator Generate()
+        
+        public void GenerateLabirynth()
         {
             var t = Time.time;
-            WaitForSeconds delay = new WaitForSeconds(fGenerationStopDelay);
-            cells = new Cell[mazeSize.x, mazeSize.z];
+            cells = new Cell[mazeSize.x, mazeSize.y];
             List<Cell> activeCells = new List<Cell>();
             DoFirstGenerationStep(activeCells);
-
             while (activeCells.Count > 0)
             {
-                yield return delay;
+
                 DoNextGenerationStep(activeCells);
+                
             }
             Debug.Log("Загрузка лабиринта заняла: " + (Time.time - t) + " секунд");
+            
         }
 
         private Cell CreateCell(CellCoordinates coords)
         {
             Cell newCell = Instantiate(mazeCellPrefab) as Cell;
-            cells[coords.x, coords.z] = newCell;
+            cells[coords.x, coords.y] = newCell;
             newCell.coords = coords;
-            newCell.name = "MazeCell" + coords.x + "," + coords.z;
+            newCell.name = "MazeCell" + coords.x + "," + coords.y;
             newCell.transform.parent = transform;
             //For Camera in 0,0,0 make Labirinth in the center
-            newCell.transform.localPosition = new Vector3(coords.x - mazeSize.x * 0.5f + 0.5f, 0f, coords.z - mazeSize.z * 0.5f + 0.5f);
+            newCell.transform.localPosition = new Vector3(coords.x - mazeSize.x * 0.5f + 0.5f, coords.y - mazeSize.y * 0.5f + 0.5f,0f);
             return newCell;
         }
 
@@ -48,18 +49,18 @@ namespace Maze
 
             get
             {
-                return new CellCoordinates(Random.Range(0, mazeSize.x), Random.Range(0, mazeSize.z));
+                return new CellCoordinates(Random.Range(0, mazeSize.x), Random.Range(0, mazeSize.y));
             }
         }
 
         public bool ContainsCoordinates(CellCoordinates coords)
         {
-            return coords.x >= 0 && coords.x < mazeSize.x && coords.z >= 0 && coords.z < mazeSize.z;
+            return coords.x >= 0 && coords.x < mazeSize.x && coords.y >= 0 && coords.y < mazeSize.y;
         }
 
         public Cell GetCell(CellCoordinates coords)
         {
-            return cells[coords.x, coords.z];
+            return cells[coords.x, coords.y];
         }
 
         private void DoFirstGenerationStep(List<Cell> activeCells)
@@ -122,6 +123,12 @@ namespace Maze
                 wall = Instantiate(mazeWallPrefab) as Wall;
                 wall.Initialise(neighbourCell, cell, dir.GetOpposite());
             }
+        }
+
+        public Bounds GetBounds()
+        {            
+            Bounds b = new Bounds(transform.position,new Vector2(Size.x, Size.y));
+            return b;
         }
 
 

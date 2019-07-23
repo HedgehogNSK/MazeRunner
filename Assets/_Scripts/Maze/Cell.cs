@@ -35,7 +35,7 @@ namespace Maze
         {
             get
             {
-                return DirectionTools.RandomUninitialisedDirection(edges.Where(edge => edge).Select(edge => edge.direction));
+                return DirectionTools.RandomUninitialisedDirection(edges.Where(edge => edge).Select(edge => edge.EdgeDirection));
             }
         }
     }

@@ -58,9 +58,9 @@ namespace Maze
         private static Quaternion[] rotations =
         {
         Quaternion.identity,
-        Quaternion.Euler(0f,90f,0f),
-        Quaternion.Euler(0f,180f,0f),
-        Quaternion.Euler(0f,270f,0f)
+        Quaternion.Euler(0f,0f,-90f),
+        Quaternion.Euler(0f,0f,180f),
+        Quaternion.Euler(0f,0f,90f)
     };
 
         public static Quaternion ToRotate(this Direction direction)

@@ -7,20 +7,32 @@ namespace Maze
     [System.Serializable]
     public struct CellCoordinates
     {
-        public int x, z;
+        public int x;
+        public int y;
+        //public int X
+        //{
+        //    get
+        //    {
+        //        return x;
+        //    }
+        //}
+        //public int Y
+        //{
+        //    get
+        //    {
+        //        return y;
+        //    }
+        //}
 
-        public CellCoordinates(int x, int z)
+        public CellCoordinates(int x, int y)
         {
             this.x = x;
-            this.z = z;
+            this.y = y;
         }
 
         public static CellCoordinates operator +(CellCoordinates a, CellCoordinates b)
-        {
-            CellCoordinates tmp;
-            tmp.x = a.x + b.x;
-            tmp.z = a.z + b.z;
-            return tmp;
+        {           
+            return new CellCoordinates(a.x + b.x, a.y + b.y);
         }
     }
 }
