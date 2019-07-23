@@ -18,17 +18,16 @@ namespace Maze
         
         public void GenerateLabirynth()
         {
-            var t = Time.time;
+            var watch = System.Diagnostics.Stopwatch.StartNew();
             cells = new Cell[mazeSize.x, mazeSize.y];
             List<Cell> activeCells = new List<Cell>();
             DoFirstGenerationStep(activeCells);
             while (activeCells.Count > 0)
             {
-
-                DoNextGenerationStep(activeCells);
-                
+                DoNextGenerationStep(activeCells);                
             }
-            Debug.Log("Загрузка лабиринта заняла: " + (Time.time - t) + " секунд");
+            watch.Stop();
+            Debug.Log("Загрузка лабиринта заняла: " + watch.ElapsedMilliseconds/100 + " секунд");
             
         }
 
