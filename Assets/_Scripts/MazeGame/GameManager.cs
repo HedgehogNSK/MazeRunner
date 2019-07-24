@@ -24,20 +24,27 @@ namespace MazeGame
         #endregion
         Transform camTransform;
         Camera cam;
+        Vector3 viewportHalfDelta;
+        float visibleBehindBoundsRate = 1.04f;
         [SerializeField] PlayerController playerPrefab;
         PlayerController player;
 
         [SerializeField] Maze.Maze mazePrefab;
         private Maze.Maze mazeInstance;
-        // Start is called before the first frame update
+
+        [SerializeField] Coin coinPrefab;
+        Coin coin;
         private void Awake()
         {
             cam = Camera.main;
             camTransform = Camera.main.transform;
+            viewportHalfDelta = (cam.ViewportToWorldPoint(Vector3.one) - cam.ViewportToWorldPoint(Vector3.zero))/(2* visibleBehindBoundsRate);
+            Coin.OnCollect += DebugText;
         }
         void Start()
         {
             BeginGame();
+            
         }
 
         // Update is called once per frame
@@ -47,30 +54,29 @@ namespace MazeGame
             {
                 RestartGame();
             }
-           // MoveCamera();
+            MoveCamera();
         }
 
         private void MoveCamera()
         {
             Bounds mazeBounds = mazeInstance.GetBounds();
 
-            Vector3 upperRightPoint = cam.ViewportToWorldPoint(Vector3.zero);
-            Vector3 downLeftPoint = cam.ViewportToWorldPoint(Vector3.one);
-
-
-            Vector3 newCamPosition = new Vector3((downLeftPoint.x < mazeBounds.min.x) ? mazeBounds.min.x : (upperRightPoint.x > mazeBounds.max.x) ? mazeBounds.max.x : player.transform.position.x,
-               (downLeftPoint.y < mazeBounds.min.y) ? mazeBounds.min.y : (upperRightPoint.y > mazeBounds.max.y) ? mazeBounds.max.y : player.transform.position.y,
-                camTransform.position.z
+            camTransform.position = new Vector3(
+               (player.transform.position.x - mazeBounds.min.x) > viewportHalfDelta.x && (mazeBounds.max.x - player.transform.position.x) > viewportHalfDelta.x ?
+                        player.transform.position.x : camTransform.position.x,
+               (player.transform.position.y - mazeBounds.min.y) > viewportHalfDelta.y && (mazeBounds.max.y - player.transform.position.y) > viewportHalfDelta.y ?
+                        player.transform.position.y : camTransform.position.y,
+                        camTransform.position.z
                );
-
-            camTransform.position = newCamPosition;
         }
 
         void BeginGame()
         {
             mazeInstance = Instantiate(mazePrefab) as Maze.Maze;
             mazeInstance.Generate();
-            //player = Instantiate(playerPrefab) as PlayerController;
+            player = Instantiate(playerPrefab) as PlayerController;
+            player.transform.position = mazeInstance.GetCell(mazeInstance.Size / 2 + new Maze.CellCoordinates(1,1)).transform.position;
+            
 
         }
 
@@ -81,6 +87,16 @@ namespace MazeGame
             Destroy(player.gameObject);
 
             BeginGame();
+        }
+
+        private void DebugText()
+        {
+            Debug.Log("coin collected");
+        }
+
+        private void OnDestroy()
+        {
+            Coin.OnCollect -= DebugText;
         }
     }
 }

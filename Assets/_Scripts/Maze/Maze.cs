@@ -19,30 +19,31 @@ namespace Maze
         public void Generate()
         {
             var watch = System.Diagnostics.Stopwatch.StartNew();
-            cells = new Cell[mazeSize.x, mazeSize.y];
+            cells = new Cell[mazeSize.X, mazeSize.Y];
             List<Cell> activeCells = new List<Cell>();
-            DoFirstGenerationStep(activeCells);
+            activeCells.Add(CreateCell(RandomCoordinates));
             int i = 0;
             while (activeCells.Count > 0)
             {
 
-                DoNextGenerationStep(activeCells);
+                CellGenerator(activeCells);
                 ++i;
             }
             watch.Stop();
             Debug.Log("Загрузка лабиринта заняла: " + watch.ElapsedMilliseconds / 1000f + " секунд и "+i+" циклов" );
+            gameObject.AddComponent<CompositeCollider2D>();
 
         }
 
         private Cell CreateCell(CellCoordinates coords)
         {
             Cell newCell = Instantiate(mazeCellPrefab) as Cell;
-            cells[coords.x, coords.y] = newCell;
+            cells[coords.X, coords.Y] = newCell;
             newCell.coords = coords;
-            newCell.name = "MazeCell" + coords.x + "," + coords.y;
+            newCell.name = "MazeCell" + coords.X + "," + coords.Y;
             newCell.transform.parent = transform;
             //For Camera in 0,0,0 make Labirinth in the center
-            newCell.transform.localPosition = new Vector3(coords.x - mazeSize.x * 0.5f + 0.5f, coords.y - mazeSize.y * 0.5f + 0.5f, 0f);
+            newCell.transform.localPosition = GetWorldPosition(coords);
             return newCell;
         }
 
@@ -51,26 +52,25 @@ namespace Maze
 
             get
             {
-                return new CellCoordinates(Random.Range(0, mazeSize.x), Random.Range(0, mazeSize.y));
+                return new CellCoordinates(Random.Range(0, mazeSize.X), Random.Range(0, mazeSize.Y));
             }
         }
 
         public bool ContainsCoordinates(CellCoordinates coords)
         {
-            return coords.x >= 0 && coords.x < mazeSize.x && coords.y >= 0 && coords.y < mazeSize.y;
+            return coords.X >= 0 && coords.X < mazeSize.X && coords.Y >= 0 && coords.Y < mazeSize.Y;
         }
 
         public Cell GetCell(CellCoordinates coords)
         {
-            return cells[coords.x, coords.y];
+            return cells[coords.X, coords.Y];
         }
-
-        private void DoFirstGenerationStep(List<Cell> activeCells)
+        public Cell GetCell(int x, int y)
         {
-            activeCells.Add(CreateCell(RandomCoordinates));
+            return cells[x, y];
         }
 
-        private void DoNextGenerationStep(List<Cell> activeCells)
+        private void CellGenerator(List<Cell> activeCells)
         {
             int currentIndex = activeCells.Count - 1;
             Cell currentCell = activeCells[currentIndex];
@@ -81,31 +81,38 @@ namespace Maze
             }
             Direction direction;
 
-            var watch = System.Diagnostics.Stopwatch.StartNew();
             direction = currentCell.RandomUninitialisedDirection;
-            watch.Stop();
-            Debug.Log(watch.ElapsedMilliseconds);
+           
+
+           
 
             CellCoordinates coords = currentCell.coords + direction.ToIntVector2();
+            
             if (ContainsCoordinates(coords))
             {
+                
                 Cell neighbour = GetCell(coords);
                 if (!neighbour)
                 {
+                    
                     neighbour = CreateCell(coords);
                     CreatePassage(currentCell, neighbour, direction);
                     activeCells.Add(neighbour);
+                    
                 }
                 else
-                {
-                    CreateWall(currentCell, neighbour, direction);
+                {                   
+                    CreateWall(currentCell, neighbour, direction);                    
                 }
+                
+               
 
             }
             else
             {
                 CreateWall(currentCell, null, direction);
             }
+           
 
 
         }
@@ -131,10 +138,15 @@ namespace Maze
 
         public Bounds GetBounds()
         {            
-            Bounds b = new Bounds(transform.position,new Vector2(Size.x, Size.y));
+            Bounds b = new Bounds(transform.position,new Vector2(Size.X, Size.Y));
             return b;
         }
 
+        public Vector3 GetWorldPosition(CellCoordinates coords)
+        {
+
+            return new Vector3(coords.X - mazeSize.X * 0.5f + 0.5f, coords.Y - mazeSize.Y * 0.5f + 0.5f, 0f);
+        }
 
     }
 
