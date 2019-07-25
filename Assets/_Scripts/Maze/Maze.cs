@@ -43,7 +43,7 @@ namespace Maze
             newCell.name = "MazeCell" + coords.X + "," + coords.Y;
             newCell.transform.parent = transform;
             //For Camera in 0,0,0 make Labirinth in the center
-            newCell.transform.localPosition = GetWorldPosition(coords);
+            newCell.transform.localPosition = coords.ToWorld();
             return newCell;
         }
 
@@ -138,14 +138,8 @@ namespace Maze
 
         public Bounds GetBounds()
         {            
-            Bounds b = new Bounds(transform.position,new Vector2(Size.X, Size.Y));
+            Bounds b = new Bounds(Size.GetCenter().ToWorld(),new Vector2(Size.X, Size.Y));
             return b;
-        }
-
-        public Vector3 GetWorldPosition(CellCoordinates coords)
-        {
-
-            return new Vector3(coords.X - mazeSize.X * 0.5f + 0.5f, coords.Y - mazeSize.Y * 0.5f + 0.5f, 0f);
         }
 
     }

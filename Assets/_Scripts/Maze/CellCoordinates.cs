@@ -36,9 +36,8 @@ namespace Maze
         }
         public static CellCoordinates operator /(CellCoordinates a, int b)
         {
-            return new CellCoordinates(a.x/b, a.y/b);
+            return new CellCoordinates(a.X/b, a.Y/b);
         }
-
 
     }
 }

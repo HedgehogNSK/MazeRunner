@@ -76,6 +76,7 @@ namespace MazeGame
             mazeInstance.Generate();
             player = Instantiate(playerPrefab) as PlayerController;
             player.transform.position = mazeInstance.GetCell(mazeInstance.Size / 2 + new Maze.CellCoordinates(1,1)).transform.position;
+            camTransform.position = player.transform.position.XY()+ camTransform.position.Z();
             
 
         }
