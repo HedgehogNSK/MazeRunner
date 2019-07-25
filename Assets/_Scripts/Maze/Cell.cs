@@ -8,7 +8,7 @@ namespace Maze
 {
     public class Cell : MonoBehaviour
     {
-        public CellCoordinates coords;
+        public Coordinates coords;
         private int iInitialisedEdgeCount;
         private CellEdge[] edges = new CellEdge[DirectionTools.Count];
         public CellEdge GetEdge(Direction dir)

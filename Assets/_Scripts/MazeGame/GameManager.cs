@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Hedge.Tools;
-
+using Maze; 
 namespace MazeGame
 
 {
@@ -44,7 +44,7 @@ namespace MazeGame
         void Start()
         {
             BeginGame();
-            
+             
         }
 
         // Update is called once per frame
@@ -75,8 +75,9 @@ namespace MazeGame
             mazeInstance = Instantiate(mazePrefab) as Maze.Maze;
             mazeInstance.Generate();
             player = Instantiate(playerPrefab) as PlayerController;
-            player.transform.position = mazeInstance.GetCell(mazeInstance.Size / 2 + new Maze.CellCoordinates(1,1)).transform.position;
-            camTransform.position = player.transform.position.XY()+ camTransform.position.Z();
+            player.transform.position = mazeInstance.GetCell(mazeInstance.Size.GetCenter).transform.position;
+            camTransform.position = mazeInstance.Size.GetCenter.ToWorld.XY()+ camTransform.position.Z();
+            CoinFactory.Create(coinPrefab, mazeInstance.Size.GetCenter.MoveTo(Direction.West));
             
 
         }

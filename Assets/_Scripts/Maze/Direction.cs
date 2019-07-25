@@ -29,15 +29,15 @@ namespace Maze
                 return (Direction)Random.Range(0, Count);
             }
         }
-        private static CellCoordinates[] iVectors =
+        private static Coordinates[] iVectors =
         {
-        new CellCoordinates(0,1), //NORTH
-        new CellCoordinates(1,0), //EASt
-        new CellCoordinates(0,-1), //South
-        new CellCoordinates(-1,0) //West
+        new Coordinates(0,1), //NORTH
+        new Coordinates(1,0), //EASt
+        new Coordinates(0,-1), //South
+        new Coordinates(-1,0) //West
     };
 
-        public static CellCoordinates ToIntVector2(this Direction direction)
+        public static Coordinates ToIntVector2(this Direction direction)
         {
             return iVectors[(int)direction];
         }

@@ -373,5 +373,11 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 5520505515880869298, guid: b482fb2de0eaf1c428d8cffc0adf8c5f,
         type: 3}
+    - target: {fileID: 3036463400149762422, guid: 8a8683c4ca7171a4192d314f132a60a6,
+        type: 3}
+      propertyPath: coinPrefab
+      value: 
+      objectReference: {fileID: 3007160021994589769, guid: 7ed9c77143256cf4892224c7f83eb16a,
+        type: 3}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 8a8683c4ca7171a4192d314f132a60a6, type: 3}

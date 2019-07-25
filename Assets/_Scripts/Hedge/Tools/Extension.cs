@@ -1,11 +1,12 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 
 namespace Hedge
 { namespace Tools
     {
-        static public class VectorExtension 
+        static public class Extension 
         {
             static public Vector3 X(this Vector3 v)
             {
@@ -33,6 +34,10 @@ namespace Hedge
                 return new Vector3(v.x, 0, v.z);
             }
 
+            public static bool IsAny<T>(this IEnumerable<T> data)
+            {
+                return data != null && data.Any();
+            }
 
 
         }

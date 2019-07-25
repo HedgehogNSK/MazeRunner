@@ -11,17 +11,25 @@ namespace Maze
         [SerializeField] Passage mazePassagePrefab;
         [SerializeField] Wall mazeWallPrefab;
         [SerializeField] Cell mazeCellPrefab;
-        [SerializeField] CellCoordinates mazeSize;
-        public CellCoordinates Size { get { return mazeSize; } }
+        [SerializeField] Coordinates mazeSize;
+   
+        public Coordinates Size => mazeSize;
+        Explorer.Graph graph;
 
         private Cell[,] cells;
 
         public void Generate()
         {
+#if DEBUG
             var watch = System.Diagnostics.Stopwatch.StartNew();
+#endif
             cells = new Cell[mazeSize.X, mazeSize.Y];
+            
             List<Cell> activeCells = new List<Cell>();
-            activeCells.Add(CreateCell(RandomCoordinates));
+            Coordinates randomStartCoords = Coordinates.RandomCoordinates(Size);
+            activeCells.Add(CreateCell(randomStartCoords));
+            graph = new Explorer.Graph(randomStartCoords);
+
             int i = 0;
             while (activeCells.Count > 0)
             {
@@ -29,13 +37,16 @@ namespace Maze
                 CellGenerator(activeCells);
                 ++i;
             }
+#if DEBUG
             watch.Stop();
             Debug.Log("Загрузка лабиринта заняла: " + watch.ElapsedMilliseconds / 1000f + " секунд и "+i+" циклов" );
+#endif
             gameObject.AddComponent<CompositeCollider2D>();
 
+            graph.Print();
         }
 
-        private Cell CreateCell(CellCoordinates coords)
+        private Cell CreateCell(Coordinates coords)
         {
             Cell newCell = Instantiate(mazeCellPrefab) as Cell;
             cells[coords.X, coords.Y] = newCell;
@@ -43,25 +54,16 @@ namespace Maze
             newCell.name = "MazeCell" + coords.X + "," + coords.Y;
             newCell.transform.parent = transform;
             //For Camera in 0,0,0 make Labirinth in the center
-            newCell.transform.localPosition = coords.ToWorld();
+            newCell.transform.localPosition = coords.ToWorld;
             return newCell;
         }
 
-        public CellCoordinates RandomCoordinates
-        {
-
-            get
-            {
-                return new CellCoordinates(Random.Range(0, mazeSize.X), Random.Range(0, mazeSize.Y));
-            }
-        }
-
-        public bool ContainsCoordinates(CellCoordinates coords)
+        public bool ContainsCoordinates(Coordinates coords)
         {
             return coords.X >= 0 && coords.X < mazeSize.X && coords.Y >= 0 && coords.Y < mazeSize.Y;
         }
 
-        public Cell GetCell(CellCoordinates coords)
+        public Cell GetCell(Coordinates coords)
         {
             return cells[coords.X, coords.Y];
         }
@@ -83,10 +85,7 @@ namespace Maze
 
             direction = currentCell.RandomUninitialisedDirection;
            
-
-           
-
-            CellCoordinates coords = currentCell.coords + direction.ToIntVector2();
+            Coordinates coords = currentCell.coords + direction.ToIntVector2();
             
             if (ContainsCoordinates(coords))
             {
@@ -98,13 +97,13 @@ namespace Maze
                     neighbour = CreateCell(coords);
                     CreatePassage(currentCell, neighbour, direction);
                     activeCells.Add(neighbour);
+                    graph.AddEdge(currentCell.coords, coords);
                     
                 }
                 else
                 {                   
                     CreateWall(currentCell, neighbour, direction);                    
-                }
-                
+                }             
                
 
             }
@@ -138,9 +137,10 @@ namespace Maze
 
         public Bounds GetBounds()
         {            
-            Bounds b = new Bounds(Size.GetCenter().ToWorld(),new Vector2(Size.X, Size.Y));
+            Bounds b = new Bounds(Size.GetCenter.ToWorld,new Vector2(Size.X, Size.Y));
             return b;
         }
+
 
     }
 
