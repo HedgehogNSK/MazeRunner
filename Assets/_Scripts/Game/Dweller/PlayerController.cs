@@ -1,19 +1,13 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using Maze.Explorer;
 using UnityEngine;
 
-namespace MazeGame
+namespace Maze.Game
 {
-    [RequireComponent(typeof(Rigidbody2D))]
-    public class PlayerController : MonoBehaviour
+    public class PlayerController : MovingCharacter
     {
-        [SerializeField] float speed = 3;
-        Rigidbody2D rigid;
 
-        private void Awake()
-        {
-            rigid = GetComponent<Rigidbody2D>();
-        }
         // Start is called before the first frame update
         void Start()
         {
@@ -23,14 +17,22 @@ namespace MazeGame
         // Update is called once per frame
         void FixedUpdate()
         {
+
             rigid.velocity = Vector2.zero;
             if (Input.GetKey(KeyCode.UpArrow)) rigid.velocity = speed * Vector2.up;
             if (Input.GetKey(KeyCode.DownArrow)) rigid.velocity = speed * Vector2.down;
             if (Input.GetKey(KeyCode.LeftArrow)) rigid.velocity = speed * Vector2.left;
             if (Input.GetKey(KeyCode.RightArrow)) rigid.velocity = speed * Vector2.right;
+
+            Coords = Coordinates.FromWorld(transform.position);
         }
 
-        public Maze.Coordinates Coords => Maze.Coordinates.FromWorld(transform.position);
+ 
+        public override void Init(Dweller prefab, Graph mazeStructure)
+        {
+          
+        }
+        
 
 
     }

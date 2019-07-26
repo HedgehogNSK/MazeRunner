@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Hedge.Tools;
-using Maze;
+
 using Maze.Explorer;
 
-namespace MazeGame
+namespace Maze.Game
 
 {
     public class GameManager : MonoBehaviour
@@ -31,10 +31,11 @@ namespace MazeGame
         [SerializeField] PlayerController playerPrefab;
         PlayerController player;
 
-        [SerializeField] Maze.Maze mazePrefab;
-        private Maze.Maze mazeInstance;
+        [SerializeField] Maze mazePrefab;
+        private Maze mazeInstance;
 
         [SerializeField] Coin coinPrefab;
+        [SerializeField] Enemy enemyPrefab;
         Coin coin;
         private void Awake()
         {
@@ -76,13 +77,20 @@ namespace MazeGame
 
         void BeginGame()
         {
-            mazeInstance = Instantiate(mazePrefab) as Maze.Maze;
+            mazeInstance = Instantiate(mazePrefab) as Maze;
             mazeInstance.Generate();
+
+
             player = Instantiate(playerPrefab) as PlayerController;
             player.transform.position = mazeInstance.GetCell(mazeInstance.Size.GetCenter).transform.position;
+  
             camTransform.position = mazeInstance.Size.GetCenter.ToWorld+ camTransform.position.Z();
-            Coin myCoin = CoinFactory.Create(coinPrefab, mazeInstance.Size.GetCenter.MoveTo(Direction.West));
 
+            Coin myCoin = CoinFactory.Create(coinPrefab, mazeInstance.Size.GetCenter.MoveTo(Direction.West));
+            Enemy enemy1 = Instantiate(enemyPrefab) as Enemy;
+            enemy1.Init(enemyPrefab, mazeInstance.Structure);
+            enemy1.transform.position = new Coordinates(3, 3).ToWorld;
+           
            
 
 

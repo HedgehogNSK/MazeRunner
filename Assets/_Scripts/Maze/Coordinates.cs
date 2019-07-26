@@ -41,7 +41,11 @@ namespace Maze
         public static Coordinates RandomCoordinates(Coordinates areaSize) => new Coordinates(Random.Range(0, areaSize.X), Random.Range(0, areaSize.Y));
 
         public static Coordinates operator +(Coordinates a, Coordinates b) => new Coordinates(a.X + b.X, a.Y + b.Y);
+        public static Coordinates operator -(Coordinates a, Coordinates b) => new Coordinates(a.X - b.X, a.Y - b.Y);
         public static Coordinates operator /(Coordinates a, int b) => new Coordinates(a.X / b, a.Y / b);
+
+        public Vector2 ToVertex() => new Vector2 (x, y);
+        
 
         public static bool operator !=(Coordinates a, Coordinates b) =>  a.x != b.x || a.y != b.y;
         public static bool operator ==(Coordinates a, Coordinates b) => a.x == b.x && a.y == b.y;
@@ -58,6 +62,8 @@ namespace Maze
                    y == coordinates.y;
         }
 
+        public float SqrDistance(Coordinates other) => (other.X - x) * (other.X - x) + (other.Y - y) * (other.Y - y);
+        
         public override string ToString()
         {
             return "[" + x + "," + y + "]";

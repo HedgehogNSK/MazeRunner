@@ -1,9 +1,8 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Maze;
 
-namespace MazeGame
+namespace Maze.Game
 {
    
     public class Coin : MonoBehaviour

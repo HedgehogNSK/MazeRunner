@@ -76,7 +76,7 @@ namespace Maze
                 return neigbours;
             }
 
-            public IEnumerable<Coordinates> Pathfinder(Coordinates start, Coordinates target)
+            public List<Coordinates> Pathfinder(Coordinates start, Coordinates target)
             {
                 Queue<Coordinates> que = new Queue<Coordinates>();
                 Dictionary<Coordinates, Coordinates> path = new Dictionary<Coordinates, Coordinates>();
@@ -108,14 +108,10 @@ namespace Maze
                     pathList.Add(target);
 
                     Coordinates value;
-                    int i = 0;
                     while (path.TryGetValue(target, out value) && value != target)
                     {
-
                         pathList.Add(value);
-                        target = value;
-                        if (i > 1000) { Debug.LogError("Всё плохо"); break; }
-                        i++;
+                        target = value;                      
 
                     }
                     pathList.Reverse();
