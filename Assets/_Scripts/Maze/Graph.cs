@@ -57,11 +57,75 @@ namespace Maze
                 }
                 Debug.Log(message);
             }
+            
+            public IEnumerable<Coordinates> Neighbours(Coordinates vertice)
+            {
+                var branchesWithNode = graph.Where(branch => branch.Any(node => node == vertice));
+                if (!branchesWithNode.IsAny()) return null;
+                List<Coordinates> neigbours = new List<Coordinates>();
+                foreach (var branch in branchesWithNode)
+                {
+                    int i = graph.IndexOf(branch);
+                    int j = branch.IndexOf(vertice);
 
-            //public IEnumerable<Coordinates> Pathfind(Coordinates point1,Coordinates point2)
-            //{
-            //    graph.Select(brench => brench.Where(point => point == point1 && brench.Any(another => another == point2)));
-            //}
+                    if (j != 0) neigbours.Add(graph[i][j - 1]);
+                    if (j != graph[i].Count - 1) neigbours.Add(graph[i][j + 1]);
+
+
+                }
+                return neigbours;
+            }
+
+            public IEnumerable<Coordinates> Pathfinder(Coordinates start, Coordinates target)
+            {
+                Queue<Coordinates> que = new Queue<Coordinates>();
+                Dictionary<Coordinates, Coordinates> path = new Dictionary<Coordinates, Coordinates>();
+                que.Enqueue(start);
+                path.Add(start, start);
+                bool found = false;
+                while (que.Any())
+                {
+                    Coordinates current = que.Dequeue();
+
+                    if (current == target) {
+                        found = true;
+                        break;
+                    }
+
+                    foreach(var neighbour in Neighbours(current))
+                    {
+                        if(!path.ContainsKey(neighbour))
+                        {
+                            que.Enqueue(neighbour);
+                            path.Add(neighbour, current);
+                        }
+                    }
+                }
+                
+                if(found)
+                {
+                    List<Coordinates> pathList = new List<Coordinates>();
+                    pathList.Add(target);
+
+                    Coordinates value;
+                    int i = 0;
+                    while (path.TryGetValue(target, out value) && value != target)
+                    {
+
+                        pathList.Add(value);
+                        target = value;
+                        if (i > 1000) { Debug.LogError("Всё плохо"); break; }
+                        i++;
+
+                    }
+                    pathList.Reverse();
+                    return pathList;
+                }
+
+                return null;
+            }
+
+            
         }
     }
 }

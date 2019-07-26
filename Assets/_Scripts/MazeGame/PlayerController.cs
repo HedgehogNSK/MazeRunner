@@ -29,5 +29,9 @@ namespace MazeGame
             if (Input.GetKey(KeyCode.LeftArrow)) rigid.velocity = speed * Vector2.left;
             if (Input.GetKey(KeyCode.RightArrow)) rigid.velocity = speed * Vector2.right;
         }
+
+        public Maze.Coordinates Coords => Maze.Coordinates.FromWorld(transform.position);
+
+
     }
 }

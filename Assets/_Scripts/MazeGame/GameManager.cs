@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Hedge.Tools;
-using Maze; 
+using Maze;
+using Maze.Explorer;
+
 namespace MazeGame
 
 {
@@ -25,7 +27,7 @@ namespace MazeGame
         Transform camTransform;
         Camera cam;
         Vector3 viewportHalfDelta;
-        float visibleBehindBoundsRate = 1.04f;
+        float visibleBehindBoundsRate = 1.03f;
         [SerializeField] PlayerController playerPrefab;
         PlayerController player;
 
@@ -60,12 +62,14 @@ namespace MazeGame
         private void MoveCamera()
         {
             Bounds mazeBounds = mazeInstance.GetBounds();
-
+            
             camTransform.position = new Vector3(
-               (player.transform.position.x - mazeBounds.min.x) > viewportHalfDelta.x && (mazeBounds.max.x - player.transform.position.x) > viewportHalfDelta.x ?
-                        player.transform.position.x : camTransform.position.x,
-               (player.transform.position.y - mazeBounds.min.y) > viewportHalfDelta.y && (mazeBounds.max.y - player.transform.position.y) > viewportHalfDelta.y ?
-                        player.transform.position.y : camTransform.position.y,
+               (player.transform.position.x - mazeBounds.min.x) < viewportHalfDelta.x? mazeBounds.min.x + viewportHalfDelta.x: 
+               (mazeBounds.max.x - player.transform.position.x)< viewportHalfDelta.x ? mazeBounds.max.x - viewportHalfDelta.x:
+                        player.transform.position.x,
+               (player.transform.position.y - mazeBounds.min.y) < viewportHalfDelta.y ? mazeBounds.min.y + viewportHalfDelta.y :
+               (mazeBounds.max.y - player.transform.position.y) < viewportHalfDelta.y ? mazeBounds.max.y - viewportHalfDelta.y :
+                        player.transform.position.y,
                         camTransform.position.z
                );
         }
@@ -76,9 +80,11 @@ namespace MazeGame
             mazeInstance.Generate();
             player = Instantiate(playerPrefab) as PlayerController;
             player.transform.position = mazeInstance.GetCell(mazeInstance.Size.GetCenter).transform.position;
-            camTransform.position = mazeInstance.Size.GetCenter.ToWorld.XY()+ camTransform.position.Z();
-            CoinFactory.Create(coinPrefab, mazeInstance.Size.GetCenter.MoveTo(Direction.West));
-            
+            camTransform.position = mazeInstance.Size.GetCenter.ToWorld+ camTransform.position.Z();
+            Coin myCoin = CoinFactory.Create(coinPrefab, mazeInstance.Size.GetCenter.MoveTo(Direction.West));
+
+           
+
 
         }
 

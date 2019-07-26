@@ -5,7 +5,7 @@ using UnityEngine;
 namespace Maze
 {
     [System.Serializable]
-    public struct Coordinates
+    public class Coordinates
     {
          [SerializeField]int x;
          [SerializeField]int y;
@@ -29,7 +29,9 @@ namespace Maze
             }
         }
 
-        public Vector3 ToWorld => new Vector3(X + 0.5f, Y + 0.5f, 0f);
+        public Vector3 ToWorld => new Vector3(X + 0.5f, Y + 0.5f,0);
+        public static Coordinates FromWorld(Vector2 position)=> new Coordinates((int)position.x, (int)position.y);
+        
         
         public Coordinates MoveTo(Direction direction)
         {
@@ -41,8 +43,8 @@ namespace Maze
         public static Coordinates operator +(Coordinates a, Coordinates b) => new Coordinates(a.X + b.X, a.Y + b.Y);
         public static Coordinates operator /(Coordinates a, int b) => new Coordinates(a.X / b, a.Y / b);
 
-        public static bool operator !=(Coordinates a, Coordinates b) => (a.x != b.x || a.y != b.y);
-        public static bool operator ==(Coordinates a, Coordinates b) => (a.x == b.x && a.y == b.y);
+        public static bool operator !=(Coordinates a, Coordinates b) =>  a.x != b.x || a.y != b.y;
+        public static bool operator ==(Coordinates a, Coordinates b) => a.x == b.x && a.y == b.y;
 
         public override bool Equals(object obj)
         {
@@ -56,5 +58,17 @@ namespace Maze
                    y == coordinates.y;
         }
 
+        public override string ToString()
+        {
+            return "[" + x + "," + y + "]";
+        }
+
+        public override int GetHashCode()
+        {
+            var hashCode = 1502939027;
+            hashCode = hashCode * -1521134295 + x.GetHashCode();
+            hashCode = hashCode * -1521134295 + y.GetHashCode();
+            return hashCode;
+        }
     }
 }

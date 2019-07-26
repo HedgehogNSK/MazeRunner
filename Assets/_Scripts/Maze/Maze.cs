@@ -1,6 +1,8 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using Maze.Explorer;
 using UnityEngine;
+using Hedge.Tools;
 
 namespace Maze
 {
@@ -14,7 +16,7 @@ namespace Maze
         [SerializeField] Coordinates mazeSize;
    
         public Coordinates Size => mazeSize;
-        Explorer.Graph graph;
+        public Graph Structure { get; private set; }
 
         private Cell[,] cells;
 
@@ -28,7 +30,7 @@ namespace Maze
             List<Cell> activeCells = new List<Cell>();
             Coordinates randomStartCoords = Coordinates.RandomCoordinates(Size);
             activeCells.Add(CreateCell(randomStartCoords));
-            graph = new Explorer.Graph(randomStartCoords);
+            Structure = new Explorer.Graph(randomStartCoords);
 
             int i = 0;
             while (activeCells.Count > 0)
@@ -42,8 +44,7 @@ namespace Maze
             Debug.Log("Загрузка лабиринта заняла: " + watch.ElapsedMilliseconds / 1000f + " секунд и "+i+" циклов" );
 #endif
             gameObject.AddComponent<CompositeCollider2D>();
-
-            graph.Print();
+            
         }
 
         private Cell CreateCell(Coordinates coords)
@@ -97,7 +98,7 @@ namespace Maze
                     neighbour = CreateCell(coords);
                     CreatePassage(currentCell, neighbour, direction);
                     activeCells.Add(neighbour);
-                    graph.AddEdge(currentCell.coords, coords);
+                    Structure.AddEdge(currentCell.coords, coords);
                     
                 }
                 else
@@ -137,7 +138,7 @@ namespace Maze
 
         public Bounds GetBounds()
         {            
-            Bounds b = new Bounds(Size.GetCenter.ToWorld,new Vector2(Size.X, Size.Y));
+            Bounds b = new Bounds(Size.GetCenter.ToWorld- Vector3.one.XY(),new Vector2(Size.X, Size.Y));
             return b;
         }
 

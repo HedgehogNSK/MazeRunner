@@ -52,8 +52,8 @@ MonoBehaviour:
   mazeCellPrefab: {fileID: 5640379768544234528, guid: 08981de1af52ecd4b97d4bfb62417d2b,
     type: 3}
   mazeSize:
-    x: 15
-    y: 15
+    x: 2
+    y: 2
 --- !u!50 &3284867017201803893
 Rigidbody2D:
   serializedVersion: 4
