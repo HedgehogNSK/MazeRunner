@@ -10,12 +10,12 @@ namespace Maze
     {
         public class Graph
         {
-            private List<List<Coordinates>> graph = new List<List<Coordinates>>();
+            protected List<List<Coordinates>> graph = new List<List<Coordinates>>();
 
             public Graph(Coordinates root)
             {
                 graph.Add(new List<Coordinates>());
-                graph.Last().Add(root);
+                graph.First().Add(root);
             }
             public bool AddEdge(Coordinates node1, Coordinates node2)
             {
@@ -57,7 +57,7 @@ namespace Maze
                 }
                 Debug.Log(message);
             }
-            
+
             public IEnumerable<Coordinates> Neighbours(Coordinates vertice)
             {
                 var branchesWithNode = graph.Where(branch => branch.Any(node => node == vertice));
@@ -78,6 +78,10 @@ namespace Maze
 
             public List<Coordinates> Pathfinder(Coordinates start, Coordinates target)
             {
+#if _DEBUG
+                var watch = System.Diagnostics.Stopwatch.StartNew();
+                watch.Start();
+#endif 
                 Queue<Coordinates> que = new Queue<Coordinates>();
                 Dictionary<Coordinates, Coordinates> path = new Dictionary<Coordinates, Coordinates>();
                 que.Enqueue(start);
@@ -87,22 +91,23 @@ namespace Maze
                 {
                     Coordinates current = que.Dequeue();
 
-                    if (current == target) {
+                    if (current == target)
+                    {
                         found = true;
                         break;
                     }
 
-                    foreach(var neighbour in Neighbours(current))
+                    foreach (var neighbour in Neighbours(current))
                     {
-                        if(!path.ContainsKey(neighbour))
+                        if (!path.ContainsKey(neighbour))
                         {
                             que.Enqueue(neighbour);
                             path.Add(neighbour, current);
                         }
                     }
                 }
-                
-                if(found)
+
+                if (found)
                 {
                     List<Coordinates> pathList = new List<Coordinates>();
                     pathList.Add(target);
@@ -111,17 +116,105 @@ namespace Maze
                     while (path.TryGetValue(target, out value) && value != target)
                     {
                         pathList.Add(value);
-                        target = value;                      
+                        target = value;
 
                     }
                     pathList.Reverse();
+#if _DEBUG
+                    watch.Stop();
+                    Debug.Log("Время поиска пути: " + watch.ElapsedMilliseconds / 1000f);
+#endif
                     return pathList;
                 }
-
+#if _DEBUG
+                watch.Stop();
+#endif
                 return null;
             }
 
+            Dictionary<Coordinates, Coordinates> searchTree = new Dictionary<Coordinates, Coordinates>();
+            bool searchTreeInit = false;
+            public void CreateSearchTree()
+            {               
+                Queue<Coordinates> que = new Queue<Coordinates>();
+                
+                que.Enqueue(graph[0][0]);
+                searchTree.Add(graph[0][0], graph[0][0]);
+                while (que.Any())
+                {
+                    Coordinates current = que.Dequeue();
+
+                    foreach (var neighbour in Neighbours(current))
+                    {
+                        if (!searchTree.ContainsKey(neighbour))
+                        {
+                            que.Enqueue(neighbour);
+                            searchTree.Add(neighbour, current);
+                        }
+                    }
+                }
+                searchTreeInit = true;
+
+            }
+
+            public List<Coordinates> GetPath(Coordinates start, Coordinates target)
+            {
+                if (!searchTreeInit) CreateSearchTree();
+                var watch = System.Diagnostics.Stopwatch.StartNew();
+                watch.Start();
+                List<Coordinates> pathList = new List<Coordinates>();
+                pathList.Add(target);
+
+                Coordinates value;
+                int i = 0;
+                while (searchTree.TryGetValue(target, out value) && value != target)
+                {                    
+                    pathList.Add(value);
+                    target = value;
+                    if (i!=0 && i%3000==0)
+                    {
+                        Debug.LogError("у нас проблемы");
+                        break;
+                    }
+                        i++;
+
+                }
+                pathList.Reverse();
+                watch.Stop();
+                Debug.Log("Время поиска пути: " + watch.ElapsedMilliseconds / 1000f +" секунд");
+                return pathList;
+            }
+
             
+            public List<Coordinates> GetWaypoints(int distance)
+            {   
+                List<Coordinates> spawnSpots = new List<Coordinates>();                
+                SearchInDepth(graph[0][0], graph[0][0], 0, distance, spawnSpots);
+                return spawnSpots;
+            }
+           
+            public void SearchInDepth(Coordinates current, Coordinates previous, int depth, int distance, List<Coordinates> spawnSpots)
+            {
+                depth++;
+                if (depth >= distance)
+                {
+                    if (spawnSpots.Count > 500)
+                    {
+                        Debug.LogError("Всё плохо");
+                        return;
+                    }
+                    depth = 0;
+                    spawnSpots.Add(current);
+                   
+                }
+                foreach (var neigbour in Neighbours(current).Except(new Coordinates[] { previous })) 
+                {
+                    SearchInDepth(neigbour, current, depth,distance,spawnSpots);
+                    
+                }
+            }
         }
+
+
     }
 }

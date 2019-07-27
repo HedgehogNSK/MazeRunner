@@ -8,8 +8,6 @@ namespace Maze
 {
     public class Maze : MonoBehaviour
     {
-        [Range(1, 700)]
-        [SerializeField] int visualizationSpeed =1;
         [SerializeField] Passage mazePassagePrefab;
         [SerializeField] Wall mazeWallPrefab;
         [SerializeField] Cell mazeCellPrefab;
@@ -22,7 +20,7 @@ namespace Maze
 
         public void Generate()
         {
-#if DEBUG
+#if _DEBUG
             var watch = System.Diagnostics.Stopwatch.StartNew();
 #endif
             cells = new Cell[mazeSize.X, mazeSize.Y];
@@ -30,7 +28,7 @@ namespace Maze
             List<Cell> activeCells = new List<Cell>();
             Coordinates randomStartCoords = Coordinates.RandomCoordinates(Size);
             activeCells.Add(CreateCell(randomStartCoords));
-            Structure = new Explorer.Graph(randomStartCoords);
+            Structure = new Graph(randomStartCoords);
 
             int i = 0;
             while (activeCells.Count > 0)
@@ -39,7 +37,7 @@ namespace Maze
                 CellGenerator(activeCells);
                 ++i;
             }
-#if DEBUG
+#if _DEBUG
             watch.Stop();
             Debug.Log("Загрузка лабиринта заняла: " + watch.ElapsedMilliseconds / 1000f + " секунд и "+i+" циклов" );
 #endif
@@ -102,8 +100,14 @@ namespace Maze
                     
                 }
                 else
-                {                   
-                    CreateWall(currentCell, neighbour, direction);                    
+                {
+                    if (Random.Range(0f, 1f) < 0.99f)
+                        CreateWall(currentCell, neighbour, direction);
+                    else
+                    {
+                        CreatePassage(currentCell, neighbour, direction);
+                        Structure.AddEdge(currentCell.coords, coords);
+                    }
                 }             
                
 

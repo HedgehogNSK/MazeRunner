@@ -44,7 +44,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: af99b4695f7c41e41b408c59d9d67b37, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  visualizationSpeed: 700
   mazePassagePrefab: {fileID: 1136647360831086017, guid: d7543abe11e58264a8f5cf5d0a6a13d2,
     type: 3}
   mazeWallPrefab: {fileID: 1255893897305692882, guid: 9e5c312330fbab04684a7d36347ee271,

@@ -28,15 +28,18 @@ namespace Maze.Game
         Camera cam;
         Vector3 viewportHalfDelta;
         float visibleBehindBoundsRate = 1.03f;
-        [SerializeField] PlayerController playerPrefab;
-        PlayerController player;
+        
+        
 
         [SerializeField] Maze mazePrefab;
         private Maze mazeInstance;
 
+        [SerializeField] PlayerController playerPrefab;
         [SerializeField] Coin coinPrefab;
         [SerializeField] Enemy enemyPrefab;
-        Coin coin;
+        PlayerController player;
+        IEnumerable<Enemy> enemies;
+        IEnumerable<Coin> coins;
         private void Awake()
         {
             cam = Camera.main;
@@ -79,17 +82,14 @@ namespace Maze.Game
         {
             mazeInstance = Instantiate(mazePrefab) as Maze;
             mazeInstance.Generate();
-
             Dweller.map = mazeInstance.Structure;
-            player = Instantiate(playerPrefab) as PlayerController;
-            player.transform.position = mazeInstance.GetCell(mazeInstance.Size.GetCenter).transform.position;
-  
-            camTransform.position = mazeInstance.Size.GetCenter.ToWorld+ camTransform.position.Z();
 
-            Coin myCoin = CoinFactory.Create(coinPrefab, mazeInstance.Size.GetCenter.MoveTo(Direction.West));
+            player =DwellerFactory.Create(playerPrefab, mazeInstance.Size.GetCenter) as PlayerController;
+            coins = DwellerFactory.CreateSet(coinPrefab,20,4,transform) as IEnumerable<Coin>;
+            enemies = DwellerFactory.CreateSet(enemyPrefab,3,25,transform)as IEnumerable<Enemy>;  
+            
+            
 
-            Enemy enemy1 = Instantiate(enemyPrefab) as Enemy;
-            enemy1.transform.position = mazeInstance.Size.GetCenter.MoveTo(Direction.West).MoveTo(Direction.West).MoveTo(Direction.West).ToWorld;
 
 
 
@@ -98,8 +98,7 @@ namespace Maze.Game
         }
 
         void RestartGame()
-        {
-            StopAllCoroutines();
+        {       
             Destroy(mazeInstance.gameObject);
             Destroy(player.gameObject);
 

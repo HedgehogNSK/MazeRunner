@@ -11,7 +11,14 @@ namespace Maze.Game
         [SerializeField]protected float speed = 3;
         public float Speed => speed;        
 
-        Coordinates currentCoords = new Coordinates(0,0);    
+        Coordinates currentCoords = new Coordinates(0,0);
+
+        protected Rigidbody2D rigid;
+        protected virtual void Awake()
+        {
+            rigid = GetComponent<Rigidbody2D>();
+        }
+
 
         protected virtual void FixedUpdate()
         {

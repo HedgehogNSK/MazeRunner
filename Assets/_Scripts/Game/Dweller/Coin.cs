@@ -5,18 +5,9 @@ using UnityEngine;
 namespace Maze.Game
 {
    
-    public class Coin : MonoBehaviour
-    {
-        Coordinates coords;
-        public Coordinates Coords
-        {
-            get { return coords; }
-            set
-            {
-                coords = value;
-                transform.localPosition = coords.ToWorld;
-            }
-        }
+    public class Coin : Dweller
+    {        
+        
         static public event System.Action OnCollect;
 
         private void OnTriggerEnter2D(Collider2D collision)
