@@ -80,18 +80,19 @@ namespace Maze.Game
             mazeInstance = Instantiate(mazePrefab) as Maze;
             mazeInstance.Generate();
 
-
+            Dweller.map = mazeInstance.Structure;
             player = Instantiate(playerPrefab) as PlayerController;
             player.transform.position = mazeInstance.GetCell(mazeInstance.Size.GetCenter).transform.position;
   
             camTransform.position = mazeInstance.Size.GetCenter.ToWorld+ camTransform.position.Z();
 
             Coin myCoin = CoinFactory.Create(coinPrefab, mazeInstance.Size.GetCenter.MoveTo(Direction.West));
+
             Enemy enemy1 = Instantiate(enemyPrefab) as Enemy;
-            enemy1.Init(enemyPrefab, mazeInstance.Structure);
-            enemy1.transform.position = new Coordinates(3, 3).ToWorld;
-           
-           
+            enemy1.transform.position = mazeInstance.Size.GetCenter.MoveTo(Direction.West).MoveTo(Direction.West).MoveTo(Direction.West).ToWorld;
+
+
+
 
 
         }

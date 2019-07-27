@@ -6,36 +6,28 @@ using UnityEngine;
 namespace Maze.Game
 {
     [RequireComponent(typeof(Rigidbody2D))]
-    public abstract class MovingCharacter : MonoBehaviour,Dweller
+    public abstract class MovingCharacter : Dweller
     {
         [SerializeField]protected float speed = 3;
-        public float Speed => speed;
+        public float Speed => speed;        
 
-        protected Coordinates coords = new Coordinates(0,0);
-        public Coordinates Coords
+        Coordinates currentCoords = new Coordinates(0,0);    
+
+        protected virtual void FixedUpdate()
         {
-            get { return coords; }
-            protected set
+            if (currentCoords != Coords)
             {
-                if (value != coords)
-                {
-                    coords = value;
-                    OnMove?.Invoke(this);
-                }                   
-                
+                currentCoords = Coords;
+                OnChangingPosition?.Invoke(this);
             }
         }
 
-        protected Rigidbody2D rigid;
-        protected virtual void Awake()
+        protected virtual void Move()
         {
-            rigid = GetComponent<Rigidbody2D>();
+            
         }
 
-        static public event System.Action<MovingCharacter> OnMove;
-
-
-        public abstract void Init(Dweller prefab, Graph mazeStructure);
+        static public event System.Action<MovingCharacter> OnChangingPosition;
 
     }
 }

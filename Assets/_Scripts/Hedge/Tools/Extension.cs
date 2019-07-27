@@ -34,6 +34,16 @@ namespace Hedge
                 return new Vector3(v.x, 0, v.z);
             }
 
+            static public Vector2 X(this Vector2 v)
+            {
+                return new Vector2(v.x, 0);
+            }
+            static public Vector2 Y(this Vector2 v)
+            {
+                return new Vector2(0, v.y);
+            }
+
+
             public static bool IsAny<T>(this IEnumerable<T> data)
             {
                 return data != null && data.Any();

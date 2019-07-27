@@ -7,10 +7,18 @@ namespace Maze.Game
 
     using Explorer;
 
-    public interface Dweller
+    [RequireComponent(typeof(Rigidbody2D))]
+    public abstract class Dweller :MonoBehaviour
     {
-        Coordinates Coords { get; }
-        void Init(Dweller prefab, Graph mazeStructure);
+
+        static public Graph map;
+        protected Rigidbody2D rigid;
+        public Coordinates Coords => Coordinates.FromWorld(transform.position);
+
+        protected virtual void Awake()
+        {
+            rigid = GetComponent<Rigidbody2D>();
+        }
 
     }
 }
