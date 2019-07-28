@@ -22,7 +22,7 @@ namespace Maze.Game
 
         protected virtual void FixedUpdate()
         {
-            if (currentCoords != Coords)
+            if (!currentCoords.Equals(Coords))
             {
                 currentCoords = Coords;
                 OnChangingPosition?.Invoke(this);

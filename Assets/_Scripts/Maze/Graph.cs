@@ -19,14 +19,14 @@ namespace Maze
             }
             public bool AddEdge(Coordinates node1, Coordinates node2)
             {
-                bool firstIsInGraph = graph.Any(brench => brench.Any(node => node == node1));
-                bool secondIsInGraph = graph.Any(brench => brench.Any(node => node == node2));
+                bool firstIsInGraph = graph.Any(brench => brench.Any(node => node.Equals(node1)));
+                bool secondIsInGraph = graph.Any(brench => brench.Any(node => node.Equals(node2)));
 
                 if (firstIsInGraph && secondIsInGraph) return false;
 
 
                 //Select Index of those brenches where node1 is exists.
-                var index = graph.Where(brench => brench.LastOrDefault() == (firstIsInGraph ? node1 : node2)).Select(brench => graph.IndexOf(brench));
+                var index = graph.Where(brench => brench.LastOrDefault().Equals(firstIsInGraph ? node1 : node2)).Select(brench => graph.IndexOf(brench));
 
                 if (index.IsAny())
                 {
@@ -60,7 +60,7 @@ namespace Maze
 
             public IEnumerable<Coordinates> Neighbours(Coordinates vertice)
             {
-                var branchesWithNode = graph.Where(branch => branch.Any(node => node == vertice));
+                var branchesWithNode = graph.Where(branch => branch.Any(node => node.Equals(vertice)));
                 if (!branchesWithNode.IsAny()) return null;
                 List<Coordinates> neigbours = new List<Coordinates>();
                 foreach (var branch in branchesWithNode)
@@ -91,7 +91,7 @@ namespace Maze
                 {
                     Coordinates current = que.Dequeue();
 
-                    if (current == target)
+                    if (current.Equals(target))
                     {
                         found = true;
                         break;
@@ -132,77 +132,29 @@ namespace Maze
                 return null;
             }
 
-            Dictionary<Coordinates, Coordinates> searchTree = new Dictionary<Coordinates, Coordinates>();
-            bool searchTreeInit = false;
-            public void CreateSearchTree()
-            {               
-                Queue<Coordinates> que = new Queue<Coordinates>();
-                
-                que.Enqueue(graph[0][0]);
-                searchTree.Add(graph[0][0], graph[0][0]);
-                while (que.Any())
-                {
-                    Coordinates current = que.Dequeue();
-
-                    foreach (var neighbour in Neighbours(current))
-                    {
-                        if (!searchTree.ContainsKey(neighbour))
-                        {
-                            que.Enqueue(neighbour);
-                            searchTree.Add(neighbour, current);
-                        }
-                    }
-                }
-                searchTreeInit = true;
-
-            }
-
-            public List<Coordinates> GetPath(Coordinates start, Coordinates target)
-            {
-                if (!searchTreeInit) CreateSearchTree();
-                var watch = System.Diagnostics.Stopwatch.StartNew();
-                watch.Start();
-                List<Coordinates> pathList = new List<Coordinates>();
-                pathList.Add(target);
-
-                Coordinates value;
-                int i = 0;
-                while (searchTree.TryGetValue(target, out value) && value != target)
-                {                    
-                    pathList.Add(value);
-                    target = value;
-                    if (i!=0 && i%3000==0)
-                    {
-                        Debug.LogError("у нас проблемы");
-                        break;
-                    }
-                        i++;
-
-                }
-                pathList.Reverse();
-                watch.Stop();
-                Debug.Log("Время поиска пути: " + watch.ElapsedMilliseconds / 1000f +" секунд");
-                return pathList;
-            }
-
+           
             
-            public List<Coordinates> GetWaypoints(int distance)
+            public List<Coordinates> GetWaypoints(int distance, Coordinates startCoords =null)
             {   
                 List<Coordinates> spawnSpots = new List<Coordinates>();                
-                SearchInDepth(graph[0][0], graph[0][0], 0, distance, spawnSpots);
+                SearchInDepth(graph[0][0], startCoords==null? graph[0][0]: startCoords, 0, distance, spawnSpots);
                 return spawnSpots;
             }
            
-            public void SearchInDepth(Coordinates current, Coordinates previous, int depth, int distance, List<Coordinates> spawnSpots)
+            private void SearchInDepth(Coordinates current, Coordinates previous, int depth, int distance, List<Coordinates> spawnSpots)
             {
                 depth++;
+
                 if (depth >= distance)
                 {
+#if _DEBUG
                     if (spawnSpots.Count > 500)
                     {
-                        Debug.LogError("Всё плохо");
+                        Debug.LogError("Recursive search in depth must be looped");
                         return;
                     }
+#endif
+
                     depth = 0;
                     spawnSpots.Add(current);
                    

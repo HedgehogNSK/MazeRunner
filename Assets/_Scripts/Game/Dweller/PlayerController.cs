@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Maze.Explorer;
 using UnityEngine;
+using Hedge.UI;
 
 namespace Maze.Game
 {
@@ -18,10 +19,13 @@ namespace Maze.Game
          protected override void FixedUpdate()
         {
             base.FixedUpdate();
-            Move();
+#if KEYBOARD
+            MoveByKeyboard();
+#endif
         }
 
-        protected override void Move()
+#if KEYBOARD
+        private void MoveByKeyboard()
         {
             rigid.velocity = Vector2.zero;
             if (Input.GetKey(KeyCode.UpArrow)) rigid.velocity = speed * Vector2.up;
@@ -29,6 +33,21 @@ namespace Maze.Game
             if (Input.GetKey(KeyCode.LeftArrow)) rigid.velocity = speed * Vector2.left;
             if (Input.GetKey(KeyCode.RightArrow)) rigid.velocity = speed * Vector2.right;
 
+
+        }
+
+#endif
+        public void Move(PressedButton button)
+        {
+            switch(button)
+            {
+                case PressedButton.Up: rigid.velocity = speed * Vector2.up; break;
+                case PressedButton.Down: rigid.velocity = speed * Vector2.down; break;
+                case PressedButton.Left:  rigid.velocity = speed * Vector2.left; ; break;
+                case PressedButton.Right: rigid.velocity = speed * Vector2.right; break;
+                default: rigid.velocity = Vector2.zero;break;
+                   
+            }
         }
 
     }
