@@ -16,8 +16,8 @@ namespace Maze.Game
         float alertRange = 5;
         [SerializeField] float chaseRange = 6;
         float sqrAlertRange, sqrChaseRange;
-        
-        List<Coordinates> waypoints = new List<Coordinates> ();
+
+        List<Coordinates> waypoints = new List<Coordinates>();
         Coordinates cachedCoords = new Coordinates(int.MinValue, int.MinValue);
 
         static public event Action<Dweller> Gotcha;
@@ -29,7 +29,7 @@ namespace Maze.Game
         }
         // Start is called before the first frame update
         void Start()
-        {            
+        {
             sqrAlertRange = alertRange * alertRange;
             sqrChaseRange = chaseRange * chaseRange;
         }
@@ -42,38 +42,31 @@ namespace Maze.Game
             sqrChaseRange = chaseRange * chaseRange;
         }
         protected override void FixedUpdate()
-        {           
+        {
             Move();
         }
 
-      
+
         protected override void Move()
         {
-
-            if (waypoints.Count != 0 && rigid.position == (Vector2)waypoints[0].ToWorld)
+            if(waypoints.Count>1)
             {
-                    waypoints.RemoveAt(0);                
-            }
+                Vector2 direction= (waypoints[1] - waypoints[0]).ToVector2;
+                Vector2 playerDirection =  GetDirectionTo(waypoints[0]);
 
-            Vector2 direction;
-            //When the player hooked up by enemy.
-            if (waypoints.Count > 1)
-            {
-                bool condition = (((Vector2)waypoints[1].ToWorld - (Vector2)waypoints[0].ToWorld).sqrMagnitude < (rigid.position - (Vector2)waypoints[0].ToWorld).sqrMagnitude)
-                && (Coordinates.FromWorld(rigid.position).Equals(waypoints[0]) || Coordinates.FromWorld(rigid.position).Equals(waypoints[1]));
-                if (condition)
+                if ( Mathf.Sign(playerDirection.x) == -Mathf.Sign(direction.x) && playerDirection.y ==direction.y ||
+                     Mathf.Sign(playerDirection.y) == -Mathf.Sign(direction.y) && playerDirection.x == direction.x)
+                {
                     waypoints.RemoveAt(0);
-
+                }
             }
             if (waypoints.Count != 0)
             {
-               
-                direction = GetDirectionTo(waypoints[0]);
-
-                rigid.velocity = CalcVelocity(direction, waypoints[0]);
-
-                cachedCoords = waypoints[0];
-
+                rigid.velocity = CalcVelocity(GetDirectionTo(waypoints[0]), waypoints[0]);
+                if (rigid.position == (Vector2)waypoints[0].ToWorld)
+                {
+                    waypoints.RemoveAt(0);
+                }
             }
 
 
@@ -94,6 +87,7 @@ namespace Maze.Game
                 rigid.MovePosition(coords.ToWorld);
                 speedVertex = Vector2.zero;
             }
+            cachedCoords = waypoints[0];
             return speedVertex;
         }
 
@@ -107,6 +101,11 @@ namespace Maze.Game
             return Vertex;
 
 
+
+        }
+
+        private void RandomWalking()
+        {
 
         }
 
@@ -139,7 +138,7 @@ namespace Maze.Game
 
             OnChangingPosition -= HotPursuit;
             waypoints.Clear();
-            Gotcha(this);
+            Gotcha?.Invoke(this);
         }
 
         private void OnDestroy()

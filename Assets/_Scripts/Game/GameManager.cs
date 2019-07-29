@@ -73,7 +73,7 @@ namespace Maze.Game
 #if KEYBOARD
             if (Input.GetKeyDown(KeyCode.Space))
             {
-                RestartGame();
+               StartCoroutine( RestartGame());
             }
 #endif
             if(player)
@@ -128,7 +128,7 @@ namespace Maze.Game
         {
 
             Points++;
-            CounterText.Update(TextType.Points, Points);
+            CounterText.Update?.Invoke(TextType.Points, Points);
             if (IsGameOver)
                 StartCoroutine(EndGame(2));
 
@@ -157,10 +157,11 @@ namespace Maze.Game
             ControllButtons.PressedButton -= player.Move;
         }
 
-        void RestartGame()
+        IEnumerator RestartGame()
         {
-           StartCoroutine(EndGame(0));
-            StartCoroutine(LoadGame());
+           yield return StartCoroutine(EndGame(0));
+           
+           StartCoroutine(LoadGame());
         }
 
 

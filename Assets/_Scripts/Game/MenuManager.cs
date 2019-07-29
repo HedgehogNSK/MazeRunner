@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
 using UnityEngine.Events;
-
+using UnityEditor.Events;
 namespace Maze
 {
     namespace Game
@@ -34,7 +34,8 @@ namespace Maze
                 for(int i=1; i!=lvlsAmount+1; i++)
                 {
                     Button btn = Instantiate(loadLvLbtn, content);
-                    UnityEditor.Events.UnityEventTools.AddIntPersistentListener(btn.onClick, LoadLevel, i);                   
+                    int j = i;
+                    btn.onClick.AddListener(() => { LoadLevel(j); });
                     btn.GetComponent<Text>().text = "Level " + i;
                 }
                 RectTransform shopContentRectTransform = content.GetComponent<RectTransform>();
