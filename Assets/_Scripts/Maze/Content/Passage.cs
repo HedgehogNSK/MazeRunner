@@ -4,8 +4,11 @@ using UnityEngine;
 
 namespace Maze
 {
-    public class Passage : CellEdge
+    namespace Content
     {
+        public class Passage : CellEdge
+        {
 
+        }
     }
 }

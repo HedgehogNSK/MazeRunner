@@ -18,10 +18,12 @@ namespace Hedge
         }
         public class ControllButtons : MonoBehaviour
         {
+#pragma warning disable CS0649
             [SerializeField] CustomButton upButton;
             [SerializeField] CustomButton leftButton;
             [SerializeField] CustomButton rightButton;
             [SerializeField] CustomButton downButton;
+#pragma warning restore CS0649
             PressedButton current;
             Dictionary<PressedButton,CustomButton> buttonsDictionary = new Dictionary<PressedButton, CustomButton>();
             private void Awake()

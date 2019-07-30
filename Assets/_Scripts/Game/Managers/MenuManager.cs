@@ -3,17 +3,18 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.SceneManagement;
-using UnityEngine.Events;
-using UnityEditor.Events;
+
 namespace Maze
 {
     namespace Game
     {
         public class MenuManager : MonoBehaviour
         {
+#pragma warning disable CS0649
             [SerializeField]GameObject[] screens;
             [SerializeField]Button loadLvLbtn;
             [SerializeField]RectTransform content;
+#pragma warning restore CS0649
             private void Awake()
             {
                 screens[0].SetActive(true);
@@ -47,7 +48,6 @@ namespace Maze
 
             public void LoadLevel(int param)
             {
-                Debug.Log(param);
                 PlayerPrefs.SetInt("level", param);
                 PlayerPrefs.Save();
                 SceneManager.LoadSceneAsync(1);

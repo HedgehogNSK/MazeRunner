@@ -49,6 +49,7 @@ namespace Maze.Game
 
         protected override void Move()
         {
+            //Situation when enemy becomes between first and second waypoint 
             if(waypoints.Count>1)
             {
                 Vector2 direction= (waypoints[1] - waypoints[0]).ToVector2;
@@ -95,18 +96,12 @@ namespace Maze.Game
         {
             Vector2 Vertex = coords.ToWorld - transform.position;
             if (Mathf.Abs(Vertex.x) <= 0.001f && Mathf.Abs(Vertex.y) <= 0.001f) return Vector2.zero;
-
-            if (Mathf.Abs(Vertex.x) > Mathf.Abs(Vertex.y)) Vertex /= Mathf.Abs(Vertex.x);
-            else Vertex /= Mathf.Abs(Vertex.y);
-            return Vertex;
-
-
-
+            return Vertex.normalized;
         }
 
         private void RandomWalking()
         {
-
+           
         }
 
         private void HotPursuit(MovingCharacter obj)
@@ -122,8 +117,7 @@ namespace Maze.Game
                 }
                 if (Coords.SqrDistance(obj.Coords) <= sqrAlertRange)
                 {
-                    waypoints = Map.Pathfinder(Coords, obj.Coords);
-                    //waypoints.RemoveAt(0);
+                    waypoints = Map.AStar(Coords, obj.Coords);                    
                     speed = obj.Speed * speedDamper;
                 }
             }
@@ -131,7 +125,11 @@ namespace Maze.Game
            
         }
 
-
+        public void StopGame()
+        {
+            OnChangingPosition -= HotPursuit;
+            waypoints.Clear();
+        }
         private void OnCollisionEnter2D(Collision2D collision)
         {
             if (collision.gameObject.tag != "Player") return;

@@ -3,8 +3,11 @@ using System.Collections.Generic;
 using UnityEngine;
 namespace Maze
 {
-    public class Wall : CellEdge
+    namespace Content
     {
+        public class Wall : CellEdge
+        {
 
+        }
     }
 }

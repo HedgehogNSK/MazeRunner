@@ -22,7 +22,7 @@ namespace Maze.Game
                 return null;
             }
             
-            var waypoints = Dweller.Map.GetWaypoints(minDistanceBetween);
+            var waypoints = Dweller.Map.GetWaypoints(minDistanceBetween,Explorer.Graph.Distance.Between);
 
             List<T> dwellers = new List<T>();
             T dweller;
@@ -48,7 +48,7 @@ namespace Maze.Game
             int distanceBetween;
             int amount;
             if (prefab is Enemy) {
-                distanceBetween = (int)settings.ChaseRange;
+                distanceBetween = (int)settings.AlertRange;
                 amount = settings.EnemiesAmount;
 
             }
@@ -63,7 +63,7 @@ namespace Maze.Game
             }
                 
 
-            var waypoints = Dweller.Map.GetWaypoints(distanceBetween, startPoint); 
+            var waypoints = Dweller.Map.GetWaypoints(distanceBetween,(prefab is Enemy)?Explorer.Graph.Distance.From : Explorer.Graph.Distance.Between ,startPoint); 
 
             List<T> dwellers = new List<T>();
             T dweller;

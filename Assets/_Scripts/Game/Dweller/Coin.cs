@@ -14,6 +14,7 @@ namespace Maze.Game
         {
             if (collision.tag == "Player")
             {
+                
                 Destroy(gameObject, 0.2f);
                 OnCollect?.Invoke(this);
             }

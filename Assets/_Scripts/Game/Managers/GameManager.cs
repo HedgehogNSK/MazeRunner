@@ -13,32 +13,25 @@ namespace Maze.Game
 {
     public class GameManager : MonoBehaviour
     {
-        #region SINGLETON
-        static private GameManager _instance;
-        static public GameManager Instance
-        {
-            get
-            {
-                if (!_instance)
-                {
-                    _instance = FindObjectOfType<GameManager>();
-                }
-                return _instance;
-            }
-        }
-        #endregion
+        //Action throw true if win, false if lose
+        static public event Action<bool> GameOver;
         Transform camTransform;
         Camera cam;
         Vector3 viewportHalfDelta;
-        float visibleBehindBoundsRate = 1.03f;
-        
+        [Range(1.0f,1.20f)]
+        [SerializeField]float visibleBehindBoundsRate = 1.01f;
+        const float delayForCoroutines = 3;
 
-        [SerializeField] Maze mazePrefab;
-        private Maze mazeInstance;
-
+#pragma warning disable CS0649
+        [SerializeField] Maze mazePrefab;    
         [SerializeField] PlayerController playerPrefab;
         [SerializeField] Coin coinPrefab;
         [SerializeField] Enemy enemyPrefab;
+#pragma warning restore CS0649
+
+        new AudioSource audio;
+
+        private Maze maze;
         PlayerController player;
         List<Enemy> enemies;
         List<Coin> coins;
@@ -48,16 +41,19 @@ namespace Maze.Game
         {
             get
             {
-                if (coins == null)
+                if (coins ==null || coins.Count == 0 )
                 {
                     return true;
                 }
+                if (coins == null) Debug.Log("Список не инициализирован");
+                else Debug.Log("Осталось ещё монет:" + coins.Count);
                 return false;
             }
         }
 
-        private void Awake()
+        void Awake()
         {
+            audio = GetComponent<AudioSource>();
             cam = Camera.main;
             camTransform = Camera.main.transform;
             viewportHalfDelta = (cam.ViewportToWorldPoint(Vector3.one) - cam.ViewportToWorldPoint(Vector3.zero))/(2* visibleBehindBoundsRate);
@@ -80,9 +76,9 @@ namespace Maze.Game
                 MoveCamera();
         }
 
-        private void MoveCamera()
+        void MoveCamera()
         {
-            Bounds mazeBounds = mazeInstance.GetBounds();
+            Bounds mazeBounds = maze.GetBounds();
             
             camTransform.position = new Vector3(
                (player.transform.position.x - mazeBounds.min.x) < viewportHalfDelta.x? mazeBounds.min.x + viewportHalfDelta.x: 
@@ -97,54 +93,81 @@ namespace Maze.Game
 
         IEnumerator LoadGame()
         {
-            
-            mazeInstance = Instantiate(mazePrefab) as Maze;
+
+            maze = Instantiate(mazePrefab) as Maze;
             yield return new WaitForEndOfFrame();
-            mazeInstance.Generate();
-            Dweller.Map = mazeInstance.Structure;
+#if _DEBUG
+                var watch = System.Diagnostics.Stopwatch.StartNew();
+                watch.Start();
+#endif
+            maze.Generate();
+#if _DEBUG
+              watch.Stop();
+              Debug.Log("Labyrinth generation time: " + watch.ElapsedMilliseconds / 1000f);
+#endif
+            Dweller.Map = maze.Map;
+
             LevelSettings level = LevelFactory.Create(PlayerPrefs.GetInt("level", 1));
-            player = DwellerFactory.Create(playerPrefab, mazeInstance.Size.GetCenter);
+            player = DwellerFactory.Create(playerPrefab, maze.Size.GetCenter);
             yield return new WaitForEndOfFrame();           
-            coins = DwellerFactory.CreateSet(coinPrefab, level,transform);
+            coins = DwellerFactory.CreateSet(coinPrefab, level,transform, player.Coords);
             yield return new WaitForEndOfFrame();
-            enemies = DwellerFactory.CreateSet(enemyPrefab, level,transform);           
+#if _DEBUG
+                watch = System.Diagnostics.Stopwatch.StartNew();
+                watch.Start();
+#endif
+            enemies = DwellerFactory.CreateSet(enemyPrefab, level,transform, player.Coords);
+#if _DEBUG
+              watch.Stop();
+              Debug.Log("Enemies spawn time: " + watch.ElapsedMilliseconds / 1000f);
+#endif
             yield return new WaitForEndOfFrame();
             Coin.OnCollect += OnCoinCollect;
             ControllButtons.PressedButton += player.Move;
             Enemy.Gotcha += OnCaughtByEnemy;
-           CounterText.Update?.Invoke(TextType.Points, Points = 0);
-           
+            CounterText.Update?.Invoke(TextType.Points, Points = 0);           
 
         }
 
-        private void OnSceneLoad(Scene arg0, LoadSceneMode arg1)
+        void OnSceneLoad(Scene arg0, LoadSceneMode arg1)
         {
             //If Interface is loaded we can start
             if (arg0.buildIndex == 1)
                 StartCoroutine(LoadGame());
         }
 
-        private void OnCoinCollect(Coin obj)
+        void OnCoinCollect(Coin obj)
         {
 
             Points++;
+            coins.Remove(obj);
+            audio.Play();
             CounterText.Update?.Invoke(TextType.Points, Points);
             if (IsGameOver)
-                StartCoroutine(EndGame(2));
+            {
+                GameOver?.Invoke(true);
+                StartCoroutine(EndGame(delayForCoroutines));
+            }
 
         }
 
         void OnCaughtByEnemy(Dweller killer)
-        {
-            Enemy.Gotcha -= OnCaughtByEnemy;
-            StartCoroutine(EndGame(2));
+        {            
+            GameOver?.Invoke(false);
+            StartCoroutine(EndGame(delayForCoroutines));
         }
 
         IEnumerator EndGame(float delay)
-        {
+        {            
+            foreach (var enemy in enemies) enemy.StopGame();
+
+            Coin.OnCollect -= OnCoinCollect;
+            Enemy.Gotcha -= OnCaughtByEnemy;
+            ControllButtons.PressedButton -= player.Move;          
+
             yield return new WaitForSeconds(delay);
-            if(mazeInstance)
-            Destroy(mazeInstance.gameObject);
+            if(maze)
+            Destroy(maze.gameObject);
             if(player)
             Destroy(player.gameObject);
             foreach (var coin in coins)
@@ -153,21 +176,19 @@ namespace Maze.Game
             foreach (var enemy in enemies)
                 if (enemy) Destroy(enemy.gameObject);
             enemies.Clear();
-            Coin.OnCollect -= OnCoinCollect;
-            ControllButtons.PressedButton -= player.Move;
+            
         }
 
         IEnumerator RestartGame()
         {
-           yield return StartCoroutine(EndGame(0));
-           
+           yield return StartCoroutine(EndGame(0));           
            StartCoroutine(LoadGame());
         }
 
 
         private void OnDestroy()
         {
-           
+            SceneManager.sceneLoaded -= OnSceneLoad;
         }
     }
 }

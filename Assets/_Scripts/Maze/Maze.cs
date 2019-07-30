@@ -6,29 +6,30 @@ using Hedge.Tools;
 
 namespace Maze
 {
+    using Content;
     public class Maze : MonoBehaviour
     {
+#pragma warning disable CS0649
         [SerializeField] Passage mazePassagePrefab;
         [SerializeField] Wall mazeWallPrefab;
         [SerializeField] Cell mazeCellPrefab;
         [SerializeField] Coordinates mazeSize;
-   
+#pragma warning restore CS0649
+
         public Coordinates Size => mazeSize;
-        public Graph Structure { get; private set; }
+        public Graph Map { get; private set; }
 
         private Cell[,] cells;
 
         public void Generate()
         {
-#if _DEBUG
-            var watch = System.Diagnostics.Stopwatch.StartNew();
-#endif
+
             cells = new Cell[mazeSize.X, mazeSize.Y];
             
             List<Cell> activeCells = new List<Cell>();
             Coordinates randomStartCoords = Coordinates.RandomCoordinates(Size);
             activeCells.Add(CreateCell(randomStartCoords));
-            Structure = new Graph(randomStartCoords);
+            Map = new Graph(randomStartCoords);
 
             int i = 0;
             while (activeCells.Count > 0)
@@ -37,10 +38,7 @@ namespace Maze
                 CellGenerator(activeCells);
                 ++i;
             }
-#if _DEBUG
-            watch.Stop();
-            Debug.Log("Загрузка лабиринта заняла: " + watch.ElapsedMilliseconds / 1000f + " секунд и "+i+" циклов" );
-#endif
+
             gameObject.AddComponent<CompositeCollider2D>();
             
         }
@@ -84,29 +82,29 @@ namespace Maze
 
             direction = currentCell.RandomUninitialisedDirection;
            
-            Coordinates coords = currentCell.coords + direction.ToIntVector2();
+            Coordinates neighbourCoords = currentCell.coords + direction.ToIntVector2();
             
-            if (ContainsCoordinates(coords))
+            if (ContainsCoordinates(neighbourCoords))
             {
                 
-                Cell neighbour = GetCell(coords);
+                Cell neighbour = GetCell(neighbourCoords);
                 if (!neighbour)
                 {
                     
-                    neighbour = CreateCell(coords);
+                    neighbour = CreateCell(neighbourCoords);
                     CreatePassage(currentCell, neighbour, direction);
                     activeCells.Add(neighbour);
-                    Structure.AddEdge(currentCell.coords, coords);
+                    Map.AddEdge(currentCell.coords, neighbourCoords);
                     
                 }
                 else
                 {
-                    if (Random.Range(0f, 1f) < 0.99f)
+                    if (Random.Range(0f, 1f) < 0.8f)
                         CreateWall(currentCell, neighbour, direction);
                     else
                     {
                         CreatePassage(currentCell, neighbour, direction);
-                        Structure.AddEdge(currentCell.coords, coords);
+                        Map.AddEdge(currentCell.coords, neighbourCoords);
                     }
                 }             
                

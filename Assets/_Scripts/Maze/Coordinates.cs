@@ -1,11 +1,12 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Priority_Queue;
 
 namespace Maze
 {
     [System.Serializable]
-    public class Coordinates
+    public class Coordinates : FastPriorityQueueNode
     {
          [SerializeField]int x;
          [SerializeField]int y;
