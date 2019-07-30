@@ -14,12 +14,18 @@ namespace Maze
         [SerializeField] Wall mazeWallPrefab;
         [SerializeField] Cell mazeCellPrefab;
         [SerializeField] Coordinates mazeSize;
+        [SerializeField] bool idealLabyrinth = true;
 #pragma warning restore CS0649
+        
+        //For not ideal labyrinth
+        const float leakyRate = 0.8f;
 
         public Coordinates Size => mazeSize;
         public Graph Map { get; private set; }
 
         private Cell[,] cells;
+
+        
 
         public void Generate()
         {
@@ -99,12 +105,17 @@ namespace Maze
                 }
                 else
                 {
-                    if (Random.Range(0f, 1f) < 0.8f)
+                    if (idealLabyrinth)
                         CreateWall(currentCell, neighbour, direction);
                     else
                     {
-                        CreatePassage(currentCell, neighbour, direction);
-                        Map.AddEdge(currentCell.coords, neighbourCoords);
+                        if (Random.Range(0f, 1f) < leakyRate)
+                            CreateWall(currentCell, neighbour, direction);
+                        else
+                        {
+                            CreatePassage(currentCell, neighbour, direction);
+                            Map.AddEdge(currentCell.coords, neighbourCoords);
+                        }
                     }
                 }             
                

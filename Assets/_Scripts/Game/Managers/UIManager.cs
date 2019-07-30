@@ -12,7 +12,7 @@ namespace Maze
 #pragma warning disable CS0649
             [SerializeField]UnityEngine.UI.Text txt;
 #pragma warning restore CS0649
-            const float delayBeforeClose = 6;
+            const float delayBeforeClose = 3;
             public void GoToMenu()
             {
                 SceneManager.LoadSceneAsync(0);

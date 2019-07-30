@@ -399,7 +399,7 @@ PrefabInstance:
     - target: {fileID: 3036463400149762422, guid: 8a8683c4ca7171a4192d314f132a60a6,
         type: 3}
       propertyPath: visibleBehindBoundsRate
-      value: 1.009
+      value: 1.01
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 8a8683c4ca7171a4192d314f132a60a6, type: 3}

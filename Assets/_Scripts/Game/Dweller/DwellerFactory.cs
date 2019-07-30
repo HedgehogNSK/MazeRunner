@@ -22,17 +22,17 @@ namespace Maze.Game
                 return null;
             }
             
-            var waypoints = Dweller.Map.GetWaypoints(minDistanceBetween,Explorer.Graph.Distance.Between);
+            var spawnPoints = Dweller.Map.GenerateSpawnPoints(minDistanceBetween,Explorer.Graph.Distance.Between);
 
             List<T> dwellers = new List<T>();
             T dweller;
             for (int i = 0; i != amount; i++)
             {
-                int id = Random.Range(0, waypoints.Count);
-                dweller = Create(prefab, waypoints[id]);
+                int id = Random.Range(0, spawnPoints.Count);
+                dweller = Create(prefab, spawnPoints[id]);
                 dweller.transform.parent = parent;
                 dwellers.Add(dweller);
-                waypoints.RemoveAt(id);
+                spawnPoints.RemoveAt(id);
             }
             return dwellers;
         }
@@ -63,21 +63,21 @@ namespace Maze.Game
             }
                 
 
-            var waypoints = Dweller.Map.GetWaypoints(distanceBetween,(prefab is Enemy)?Explorer.Graph.Distance.From : Explorer.Graph.Distance.Between ,startPoint); 
+            var spawnPoints = Dweller.Map.GenerateSpawnPoints(distanceBetween,(prefab is Enemy)?Explorer.Graph.Distance.From : Explorer.Graph.Distance.Between ,startPoint); 
 
             List<T> dwellers = new List<T>();
             T dweller;
             for (int i = 0; i != amount; i++)
             {
-                int id = Random.Range(0, waypoints.Count);
-                dweller = Create(prefab, waypoints[id]);
+                int id = Random.Range(0, spawnPoints.Count);
+                dweller = Create(prefab, spawnPoints[id]);
                 dweller.transform.parent = parent;
                 dwellers.Add(dweller);
                 if(dweller is Enemy)
                 {
                     (dweller as Enemy).SetParams(settings.AlertRange, settings.ChaseRange);
                 }
-                waypoints.RemoveAt(id);
+                spawnPoints.RemoveAt(id);
             }
 
             

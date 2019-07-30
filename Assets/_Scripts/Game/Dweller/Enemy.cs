@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -11,70 +12,78 @@ namespace Maze.Game
     public class Enemy : MovingCharacter
     {
 
-        [SerializeField] float speedDamper = 0.9f;
-        [SerializeField]
-        float alertRange = 5;
-        [SerializeField] float chaseRange = 6;
-        float sqrAlertRange, sqrChaseRange;
 
-        List<Coordinates> waypoints = new List<Coordinates>();
+        [SerializeField] float speedDamper = 0.9f;
+        float alertRange = 5;
+        float chaseRange = 6;
+        const int borderPatrolSize = 2;
+        bool pursuit = false;
+
+        List<Coordinates> movePath = new List<Coordinates>();
+        IEnumerable<Coordinates> patrolPoints = new List<Coordinates>();
         Coordinates cachedCoords = new Coordinates(int.MinValue, int.MinValue);
 
+        bool Alarm(Coordinates other) => Coords.SqrDistance(other) < alertRange * alertRange;
+        bool IsObjToFarToChase(Coordinates other) => Coords.SqrDistance(other) > chaseRange * chaseRange;
+        private List<Coordinates> PatrolPath => Map.AStar(Coords, patrolPoints.ElementAt(UnityEngine.Random.Range(0, patrolPoints.Count())));
+
         static public event Action<Dweller> Gotcha;
+
+        Coordinates lastPlayerCoords;
 
         protected override void Awake()
         {
             base.Awake();
-            OnChangingPosition += HotPursuit;
+            OnChangingPosition += OnOtherCharMove;
         }
-        // Start is called before the first frame update
-        void Start()
+
+        public override void Init(Coordinates startPosition)
         {
-            sqrAlertRange = alertRange * alertRange;
-            sqrChaseRange = chaseRange * chaseRange;
+           base.Init(startPosition);
+           if(Map!=null)
+            {
+                patrolPoints = Map.NeighboursAround(startPosition, borderPatrolSize);
+            }
         }
 
         public void SetParams(float alertRange, float chaseRange)
         {
             this.alertRange = alertRange;
             this.chaseRange = chaseRange;
-            sqrAlertRange = alertRange * alertRange;
-            sqrChaseRange = chaseRange * chaseRange;
         }
         protected override void FixedUpdate()
         {
-            Move();
+           
+            Move(); 
         }
 
 
         protected override void Move()
         {
             //Situation when enemy becomes between first and second waypoint 
-            if(waypoints.Count>1)
+            if(movePath.Count>1)
             {
-                Vector2 direction= (waypoints[1] - waypoints[0]).ToVector2;
-                Vector2 playerDirection =  GetDirectionTo(waypoints[0]);
+                Vector2 pathDirection= (movePath[1] - movePath[0]).ToVector2;
+                Vector2 direction =  GetDirectionTo(movePath[0]);
 
-                if ( Mathf.Sign(playerDirection.x) == -Mathf.Sign(direction.x) && playerDirection.y ==direction.y ||
-                     Mathf.Sign(playerDirection.y) == -Mathf.Sign(direction.y) && playerDirection.x == direction.x)
+                if ( Mathf.Sign(direction.x) == -Mathf.Sign(pathDirection.x) && direction.y ==pathDirection.y ||
+                     Mathf.Sign(direction.y) == -Mathf.Sign(pathDirection.y) && direction.x == pathDirection.x)
                 {
-                    waypoints.RemoveAt(0);
+                    movePath.RemoveAt(0);
                 }
             }
-            if (waypoints.Count != 0)
+            if (movePath.Count != 0)
             {
-                rigid.velocity = CalcVelocity(GetDirectionTo(waypoints[0]), waypoints[0]);
-                if (rigid.position == (Vector2)waypoints[0].ToWorld)
+                rigid.velocity = CalcVelocity(GetDirectionTo(movePath[0]), movePath[0]);
+                if (rigid.velocity == Vector2.zero)
                 {
-                    waypoints.RemoveAt(0);
+                    movePath.RemoveAt(0);
                 }
             }
-
-
             //Place for random walking of enemies;   
             else
             {
-                rigid.velocity = Vector3.zero;
+                
             }
         }
         
@@ -88,7 +97,7 @@ namespace Maze.Game
                 rigid.MovePosition(coords.ToWorld);
                 speedVertex = Vector2.zero;
             }
-            cachedCoords = waypoints[0];
+            cachedCoords = movePath[0];
             return speedVertex;
         }
 
@@ -99,49 +108,78 @@ namespace Maze.Game
             return Vertex.normalized;
         }
 
-        private void RandomWalking()
-        {
-           
-        }
 
-        private void HotPursuit(MovingCharacter obj)
+       
+        private void OnOtherCharMove(MovingCharacter obj)
         {
 
-            if ((obj is PlayerController))
-
+            if (obj is PlayerController)
             {
-                if (Coords.SqrDistance(obj.Coords) > sqrChaseRange)
+                lastPlayerCoords = obj.Coords;
+                if (IsObjToFarToChase(lastPlayerCoords) && pursuit)
                 {
-                    waypoints.Clear();
+                    movePath.Clear();
+                    currentSpeed = baseSpeed;
+                    pursuit = false;
                     return;
                 }
-                if (Coords.SqrDistance(obj.Coords) <= sqrAlertRange)
-                {
-                    waypoints = Map.AStar(Coords, obj.Coords);                    
-                    speed = obj.Speed * speedDamper;
-                }
+
+
+                if (Alarm(lastPlayerCoords)) pursuit = true;
+                SearchPursuitPath(lastPlayerCoords);
+                currentSpeed = obj.Speed * speedDamper;
+                
             }
 
-           
+
+        }
+
+        private void SearchPursuitPath(Coordinates target)
+        {
+            
+
+            if (pursuit)
+            {
+                if (movePath.IsAny())
+                {
+                    IEnumerable<Coordinates> newPath = Map.AStar(movePath.Last(), target);
+                    IEnumerable<Coordinates> tmp = movePath.Intersect(newPath);
+                    tmp = tmp.Except(new Coordinates[] { tmp.FirstOrDefault() });
+                    movePath = movePath.Union(newPath).Except(tmp).Distinct().ToList();
+
+                }
+                else
+                    movePath = Map.AStar(Coords, target);
+                
+            }
+            else
+            {
+                if (!movePath.IsAny())
+                {
+                    movePath = PatrolPath;
+                }
+            }
+            
+
         }
 
         public void StopGame()
         {
-            OnChangingPosition -= HotPursuit;
-            waypoints.Clear();
+            OnChangingPosition -= OnOtherCharMove;
+            movePath.Clear();
         }
         private void OnCollisionEnter2D(Collision2D collision)
         {
             if (collision.gameObject.tag != "Player") return;
 
-            OnChangingPosition -= HotPursuit;
-            waypoints.Clear();
+            OnChangingPosition -= OnOtherCharMove;
+            movePath.Clear();
             Gotcha?.Invoke(this);
         }
 
         private void OnDestroy()
         {
-            OnChangingPosition -= HotPursuit;
+            OnChangingPosition -= OnOtherCharMove;
         }
     }
 }

@@ -20,7 +20,7 @@ namespace Maze.Game
         Vector3 viewportHalfDelta;
         [Range(1.0f,1.20f)]
         [SerializeField]float visibleBehindBoundsRate = 1.01f;
-        const float delayForCoroutines = 3;
+        const float delayForCoroutines = 2;
 
 #pragma warning disable CS0649
         [SerializeField] Maze mazePrefab;    
@@ -45,8 +45,7 @@ namespace Maze.Game
                 {
                     return true;
                 }
-                if (coins == null) Debug.Log("Список не инициализирован");
-                else Debug.Log("Осталось ещё монет:" + coins.Count);
+               
                 return false;
             }
         }
@@ -92,8 +91,7 @@ namespace Maze.Game
         }
 
         IEnumerator LoadGame()
-        {
-
+        {   
             maze = Instantiate(mazePrefab) as Maze;
             yield return new WaitForEndOfFrame();
 #if _DEBUG
@@ -188,6 +186,8 @@ namespace Maze.Game
 
         private void OnDestroy()
         {
+            Coin.OnCollect -= OnCoinCollect;
+            Enemy.Gotcha -= OnCaughtByEnemy;
             SceneManager.sceneLoaded -= OnSceneLoad;
         }
     }

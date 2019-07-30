@@ -606,7 +606,7 @@ PlayerSettings:
   webGLThreadsSupport: 0
   webGLWasmStreaming: 0
   scriptingDefineSymbols:
-    1: KEYBOARD;_DEBUG
+    1: KEYBOARD
   platformArchitecture: {}
   scriptingBackend: {}
   il2cppCompilerConfiguration: {}

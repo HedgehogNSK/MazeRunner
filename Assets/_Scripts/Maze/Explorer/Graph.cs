@@ -35,41 +35,10 @@ namespace Maze
                     message = message + "\n";
                 }
                 Debug.Log(message);
-            }
+            }          
 
-           
-
-            public bool AddEdge(Coordinates node1, Coordinates node2)
-            {
-                if (ContainsEdge(node1, node2)) return false;                
-              
-                var branchWithNode = graph.FirstOrDefault(branch => {
-                    Coordinates tmp = branch.LastOrDefault();
-                    return tmp.Equals(node1) || tmp.Equals(node2);
-                    });
-
-                if (!ContainsVertice(node1)) VerticeAmount++;
-                if (!ContainsVertice(node2)) VerticeAmount++;
-                //If node1 or node2 is already in graph and it is last in graph then add another node to branch
-                //Otherwise add new branch with to graph
-                if (branchWithNode.IsAny())
-                {
-                    branchWithNode.Add(branchWithNode.Last().Equals(node1)? node2:node1);
- 
-                }
-                else
-                {
-                    graph.Add(new List<Coordinates>());
-                    graph.Last().Add(node1);
-                    graph.Last().Add(node2);
-
-                }
-
-                return true;
-
-            }
+          
             public bool ContainsVertice(Coordinates node) => graph.Any(branch => branch.Contains(node));
-
             public bool ContainsEdge(Coordinates node1, Coordinates node2)
             {
                 Coordinates previous = null;
@@ -83,7 +52,6 @@ namespace Maze
                 );
 
             }
-
             public IEnumerable<Coordinates> Neighbours(Coordinates vertice)
             {
                 var branchesWithNode = graph.Where(branch => branch.Any(node => node.Equals(vertice)));
@@ -102,16 +70,65 @@ namespace Maze
                 }
                 return neigbours;
             }
+            public IEnumerable<Coordinates> NeighboursAround(Coordinates center, int range)
+            {
+                List<Coordinates> spots = new List<Coordinates>();
 
+                foreach (var branch in graph)
+                {
+                    foreach (var node in branch)
+                    {
+                        if (!spots.Contains(node) && center.SqrDistance(node) < range * range)
+                            spots.Add(node);
+                    }
+                }
+
+                return spots.Where(spot => Neighbours(spot).Any(node => spots.Contains(node)));
+            }
+
+            public bool AddEdge(Coordinates node1, Coordinates node2)
+            {
+                if (ContainsEdge(node1, node2)) return false;
+
+                var branchWithNode = graph.FirstOrDefault(branch => {
+                    Coordinates tmp = branch.LastOrDefault();
+                    return tmp.Equals(node1) || tmp.Equals(node2);
+                });
+
+                if (!ContainsVertice(node1)) VerticeAmount++;
+                if (!ContainsVertice(node2)) VerticeAmount++;
+                //If node1 or node2 is already in graph and it is last in graph then add another node to branch
+                //Otherwise add new branch with to graph
+                if (branchWithNode.IsAny())
+                {
+                    branchWithNode.Add(branchWithNode.Last().Equals(node1) ? node2 : node1);
+
+                }
+                else
+                {
+                    graph.Add(new List<Coordinates>());
+                    graph.Last().Add(node1);
+                    graph.Last().Add(node2);
+
+                }
+
+                return true;
+
+            }
             public List<Coordinates> AStar(Coordinates start , Coordinates target)
             {
-                
-                Queue<Coordinates> nodes = new Queue<Coordinates>();
-                
-                FastPriorityQueue<BreadCrump> nodesQueue =new FastPriorityQueue<BreadCrump>(VerticeAmount);
 
+#if _DEBUG
+                var watch = System.Diagnostics.Stopwatch.StartNew();
+                watch.Start();
+#endif 
+                Queue<BreadCrump> nodes = new Queue<BreadCrump>();
+                
+                FastPriorityQueue<BreadCrump> nodesQueue =new FastPriorityQueue<BreadCrump>(2*VerticeAmount);
+               
                 BreadCrump breadCrump = new BreadCrump(start, null, 0);
                 nodesQueue.Enqueue(breadCrump,0);
+               
                 while(nodesQueue.IsValidQueue())
                 {
                     BreadCrump current = nodesQueue.Dequeue();
@@ -128,11 +145,27 @@ namespace Maze
                         {
                             BreadCrump next = new BreadCrump(neighbour, current, newCost);
                             int priority = newCost + Heuristic(neighbour, target);
-                            nodesQueue.Enqueue(next, priority);
+                            try
+                            {
+                                nodesQueue.Enqueue(next, priority);                               
+                            }
+                            catch
+                            {                                
+                                string msg ="Search way from "+start +"->" + target +"\n";
+                                foreach(var nod in nodesQueue)
+                                {
+                                    
+                                    msg+="->"+nod;
+                                }
+                                Debug.LogError(msg);
+                                Print();
+                            }
                         }
                     }
+                    
                 }
-                if(breadCrump.Equals(target))
+                
+                if (breadCrump.Equals(target))
                 {
                     List<Coordinates> path = new List<Coordinates>();
                     path.Add(breadCrump);
@@ -141,12 +174,20 @@ namespace Maze
                         breadCrump = breadCrump.Origin;
                         path.Add(breadCrump);                        
                     }
+                    path.Reverse();
+#if _DEBUG
+                    watch.Stop();
+                    Debug.Log("AStar path find time: " + watch.ElapsedMilliseconds / 1000f);
+#endif
                     return path;
+
                 }
+#if _DEBUG
+                watch.Stop();
+#endif
                 return null;
             }
-            public int Heuristic(Coordinates node1, Coordinates node2) =>  Mathf.Abs(node1.X - node2.X) + Mathf.Abs(node1.Y - node2.Y);
-            
+            private int Heuristic(Coordinates node1, Coordinates node2) =>  Mathf.Abs(node1.X - node2.X) + Mathf.Abs(node1.Y - node2.Y);         
             public List<Coordinates> BreadthFirstSearch(Coordinates start, Coordinates target)
             {
 #if _DEBUG
@@ -208,7 +249,7 @@ namespace Maze
                 Between,
                 From
             }
-            public List<Coordinates> GetWaypoints(int distance, Distance type = Distance.Between, Coordinates startCoords =null)
+            public List<Coordinates> GenerateSpawnPoints(int distance, Distance type = Distance.Between, Coordinates startCoords =null)
             {   
                 List<Coordinates> spawnSpots = new List<Coordinates>();               
                 switch(type)
@@ -224,9 +265,7 @@ namespace Maze
                 }
                 
                 return spawnSpots;
-            }
-
-           
+            }         
             private void SearchInDepth(Coordinates current, int depth, int distance, List<Coordinates> previous, List<Coordinates> resultSpots)
             {
                 depth++;
@@ -285,6 +324,7 @@ namespace Maze
                 
             }
 
+        
 
         }
 
