@@ -24,14 +24,14 @@ namespace Maze
                 }
                 else if(level>=20 && level<40)
                 {
-                    builder = builder.SetEnemiesAmount(baseEnemyAmount + level-20)
-                        .SetCoinsAmount(baseCoinAmount + level-20)
+                    builder = builder.SetEnemiesAmount(baseEnemyAmount + level-19)
+                        .SetCoinsAmount(baseCoinAmount + level-19)
                         .SetEnemyVigilance(5, 7);
                 }
                 else if(level>=40 && level <=50)
                 {
-                    builder = builder.SetEnemiesAmount(baseEnemyAmount + level - 40)
-                       .SetCoinsAmount(baseCoinAmount + level - 40)
+                    builder = builder.SetEnemiesAmount(baseEnemyAmount + level - 39)
+                       .SetCoinsAmount(baseCoinAmount + level - 39)
                        .SetEnemyVigilance(6, 9);
                 }
                 else
