@@ -53,6 +53,7 @@ MonoBehaviour:
   mazeSize:
     x: 15
     y: 15
+  idealLabyrinth: 0
 --- !u!50 &3284867017201803893
 Rigidbody2D:
   serializedVersion: 4

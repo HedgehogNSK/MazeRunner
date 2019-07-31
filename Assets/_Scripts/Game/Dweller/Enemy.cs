@@ -29,7 +29,7 @@ namespace Maze.Game
 
         static public event Action<Dweller> Gotcha;
 
-        Coordinates lastPlayerCoords;
+        MovingCharacter targetCharacter;
 
         protected override void Awake()
         {
@@ -53,14 +53,15 @@ namespace Maze.Game
         }
         protected override void FixedUpdate()
         {
-           
+            CheckMoveState(targetCharacter);
+            SearchPath(targetCharacter);
             Move(); 
         }
 
 
         protected override void Move()
         {
-            //Situation when enemy becomes between first and second waypoint 
+            //If enemy becomes between first and second waypoint 
             if(movePath.Count>1)
             {
                 Vector2 pathDirection= (movePath[1] - movePath[0]).ToVector2;
@@ -79,12 +80,7 @@ namespace Maze.Game
                 {
                     movePath.RemoveAt(0);
                 }
-            }
-            //Place for random walking of enemies;   
-            else
-            {
-                
-            }
+            }           
         }
         
         private Vector2 CalcVelocity(Vector2 direction, Coordinates coords)
@@ -104,52 +100,57 @@ namespace Maze.Game
         private Vector2 GetDirectionTo(Coordinates coords)
         {
             Vector2 Vertex = coords.ToWorld - transform.position;
+            
             if (Mathf.Abs(Vertex.x) <= 0.001f && Mathf.Abs(Vertex.y) <= 0.001f) return Vector2.zero;
             return Vertex.normalized;
         }
 
-
-       
-        private void OnOtherCharMove(MovingCharacter obj)
+        public void CheckMoveState(MovingCharacter target)
         {
-
-            if (obj is PlayerController)
+            if (!target) return;
+            //Check if target has gone to far
+            if (IsObjToFarToChase(target.Coords) && pursuit)
             {
-                lastPlayerCoords = obj.Coords;
-                if (IsObjToFarToChase(lastPlayerCoords) && pursuit)
-                {
-                    movePath.Clear();
-                    currentSpeed = baseSpeed;
-                    pursuit = false;
-                    return;
-                }
-
-
-                if (Alarm(lastPlayerCoords)) pursuit = true;
-                SearchPursuitPath(lastPlayerCoords);
-                currentSpeed = obj.Speed * speedDamper;
-                
+                pursuit = false;
+                movePath.Clear();                    
+                currentSpeed = baseSpeed;
+                return;
             }
 
+            //Check if target to near
+            if (Alarm(target.Coords) && !pursuit)
+            {
+                pursuit = true;
+                movePath.Clear();              
+                currentSpeed = target.Speed * speedDamper;
+            }
+        }
+       
+        private void OnOtherCharMove(MovingCharacter target)
+        {
+            if (target is PlayerController)
+            {
+                this.targetCharacter = target;
+            }
 
         }
 
-        private void SearchPursuitPath(Coordinates target)
+        private void SearchPath(MovingCharacter target)
         {
             
 
-            if (pursuit)
+            if (target && pursuit)
             {
                 if (movePath.IsAny())
                 {
-                    IEnumerable<Coordinates> newPath = Map.AStar(movePath.Last(), target);
+                    IEnumerable<Coordinates> newPath = Map.AStar(movePath.Last(), target.Coords);
                     IEnumerable<Coordinates> tmp = movePath.Intersect(newPath);
                     tmp = tmp.Except(new Coordinates[] { tmp.FirstOrDefault() });
                     movePath = movePath.Union(newPath).Except(tmp).Distinct().ToList();
 
                 }
                 else
-                    movePath = Map.AStar(Coords, target);
+                    movePath = Map.AStar(Coords, target.Coords);
                 
             }
             else
