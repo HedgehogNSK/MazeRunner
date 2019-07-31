@@ -150,16 +150,10 @@ namespace Maze
                                 nodesQueue.Enqueue(next, priority);                               
                             }
                             catch
-                            {                                
-                                string msg ="Search way from "+start +"->" + target +"\n";
-                                foreach(var nod in nodesQueue)
-                                {
-                                    
-                                    msg+="->"+nod;
-                                }
-                                Debug.LogError(msg);
-                                Print();
+                            {
+                                return null;
                             }
+
                         }
                     }
                     
@@ -193,7 +187,7 @@ namespace Maze
 #if _DEBUG
                 var watch = System.Diagnostics.Stopwatch.StartNew();
                 watch.Start();
-#endif 
+#endif
                 Queue<Coordinates> que = new Queue<Coordinates>();
                 Dictionary<Coordinates, Coordinates> path = new Dictionary<Coordinates, Coordinates>();
                 que.Enqueue(start);
