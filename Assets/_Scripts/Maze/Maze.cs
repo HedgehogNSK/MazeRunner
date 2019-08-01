@@ -18,7 +18,7 @@ namespace Maze
 #pragma warning restore CS0649
         
         //For not ideal labyrinth
-        const float leakyRate = 0.8f;
+        const float leakyRate = 0.4f;
 
         public Coordinates Size => mazeSize;
         public Graph Map { get; private set; }

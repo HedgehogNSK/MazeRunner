@@ -47,7 +47,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   baseSpeed: 1.5
-  speedDamper: 0.9
+  speedDamper: 0.7
 --- !u!61 &3558485685295703058
 BoxCollider2D:
   m_ObjectHideFlags: 0

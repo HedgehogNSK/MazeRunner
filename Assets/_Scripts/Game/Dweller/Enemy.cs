@@ -52,17 +52,18 @@ namespace Maze.Game
             this.chaseRange = chaseRange;
         }
         protected override void FixedUpdate()
-        {
-            CheckMoveState(targetCharacter);
-            SearchPath(targetCharacter);
+        {            
             Move(); 
         }
 
 
         protected override void Move()
         {
+            CheckMoveState(targetCharacter);
+            SearchPath(targetCharacter);
+
             //If enemy becomes between first and second waypoint 
-            if(movePath.Count>1)
+            if (movePath.Count>1)
             {
                 Vector2 pathDirection= (movePath[1] - movePath[0]).ToVector2;
                 Vector2 direction =  GetDirectionTo(movePath[0]);
@@ -73,27 +74,29 @@ namespace Maze.Game
                     movePath.RemoveAt(0);
                 }
             }
-            if (movePath.Count != 0)
+           
+            if(movePath.Any())
             {
-                rigid.velocity = CalcVelocity(GetDirectionTo(movePath[0]), movePath[0]);
-                if (rigid.velocity == Vector2.zero)
-                {
-                    movePath.RemoveAt(0);
+                Vector2 velocity = CalcVelocity(movePath[0]);
+                if (velocity == Vector2.zero)
+                {                   
+                    movePath.RemoveAt(0);                  
                 }
+                rigid.velocity = velocity;
             }           
         }
         
-        private Vector2 CalcVelocity(Vector2 direction, Coordinates coords)
+        private Vector2 CalcVelocity(Coordinates coords)
         {
-            Vector2 speedVertex = Speed * direction;            
+            Vector2 speedVertex = Speed * GetDirectionTo(coords);            
 
             //Overjump check
             if (cachedCoords.Equals(coords) && (Mathf.Sign(rigid.velocity.x) != Mathf.Sign(speedVertex.x) || Mathf.Sign(rigid.velocity.y) != Mathf.Sign(speedVertex.y)))
             {
-                rigid.MovePosition(coords.ToWorld);
+                rigid.MovePosition(Coords.ToWorld);
                 speedVertex = Vector2.zero;
             }
-            cachedCoords = movePath[0];
+            cachedCoords = coords;
             return speedVertex;
         }
 
@@ -167,6 +170,8 @@ namespace Maze.Game
         public void StopGame()
         {
             OnChangingPosition -= OnOtherCharMove;
+            targetCharacter = null;
+            currentSpeed = 0;
             movePath.Clear();
         }
         private void OnCollisionEnter2D(Collision2D collision)

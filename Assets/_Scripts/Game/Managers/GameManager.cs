@@ -89,16 +89,22 @@ namespace Maze.Game
                         camTransform.position.z
                );
         }
-
+      
+        IEnumerator LoadMaze()
+        {
+            maze = Instantiate(mazePrefab) as Maze;
+            maze.Generate();
+            yield return null;
+        }
         IEnumerator LoadGame()
         {   
             maze = Instantiate(mazePrefab) as Maze;
-            yield return new WaitForEndOfFrame();
 #if _DEBUG
                 var watch = System.Diagnostics.Stopwatch.StartNew();
                 watch.Start();
 #endif
-            maze.Generate();
+            
+            yield return StartCoroutine(LoadMaze());
 #if _DEBUG
               watch.Stop();
               Debug.Log("Labyrinth generation time: " + watch.ElapsedMilliseconds / 1000f);
@@ -106,8 +112,7 @@ namespace Maze.Game
             Dweller.Map = maze.Map;
 
             LevelSettings level = LevelFactory.Create(PlayerPrefs.GetInt("level", 1));
-            player = DwellerFactory.Create(playerPrefab, maze.Size.GetCenter);
-            yield return new WaitForEndOfFrame();           
+            player = DwellerFactory.Create(playerPrefab, maze.Size.GetCenter);         
             coins = DwellerFactory.CreateSet(coinPrefab, level,transform, player.Coords);
             yield return new WaitForEndOfFrame();
 #if _DEBUG

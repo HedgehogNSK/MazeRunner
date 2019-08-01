@@ -115,24 +115,25 @@ namespace Maze
                 return true;
 
             }
+
+            private int Heuristic(Coordinates node1, Coordinates node2) => Mathf.Abs(node1.X - node2.X) + Mathf.Abs(node1.Y - node2.Y);
+
             public List<Coordinates> AStar(Coordinates start , Coordinates target)
             {
 
 #if _DEBUG
                 var watch = System.Diagnostics.Stopwatch.StartNew();
                 watch.Start();
-#endif 
-                Queue<BreadCrump> nodes = new Queue<BreadCrump>();
-                
-                FastPriorityQueue<BreadCrump> nodesQueue =new FastPriorityQueue<BreadCrump>(2*VerticeAmount);
+#endif                 
+                FastPriorityQueue<BreadCrump> nodesQueue =new FastPriorityQueue<BreadCrump>(VerticeAmount);                
                
-                BreadCrump breadCrump = new BreadCrump(start, null, 0);
+                BreadCrump breadCrump = new BreadCrump(target, null, 0);
                 nodesQueue.Enqueue(breadCrump,0);
                
                 while(nodesQueue.IsValidQueue())
                 {
                     BreadCrump current = nodesQueue.Dequeue();
-                    if (current.Equals(target))
+                    if (current.Equals(start))
                     {
                         breadCrump = current;
                         break;
@@ -141,6 +142,7 @@ namespace Maze
                     foreach(var neighbour in Neighbours(current))
                     {
                         int newCost = 1 + current.PathCost;
+<<<<<<< Updated upstream
                         if(current.FindCrump(neighbour)==null || newCost < current.FindCrump(neighbour).PathCost)
                         {
                             BreadCrump next = new BreadCrump(neighbour, current, newCost);
@@ -161,11 +163,48 @@ namespace Maze
                                 Print();
                             }
                         }
+=======
+
+                        BreadCrump next = current.FindCrump(neighbour);
+
+                            if (next == null || newCost < next.PathCost)
+                            {
+                                next = new BreadCrump(neighbour, current, newCost);
+                                //next = nodesQueue.SingleOrDefault(node => node.Equals(neighbour) && nodesQueue.Any(other => other.Equals(neighbour) && node.PathCost < other.PathCost) );
+                                int priority = newCost + Heuristic(neighbour, start);
+                                //try
+                                //{
+                                    nodesQueue.Enqueue(next, priority);
+                                //}
+                                //catch
+                                //{
+                                //    string msg = "Search path: " + start + "->" + target + "\n";
+                                //    foreach (var node in nodesQueue)
+                                //    {
+                                //        msg += ";" + node;
+                                //    }
+                                //    msg = "\n";
+                                //    foreach (var c in nodesQueue.Where(node => nodesQueue.Any(other => other != node && node.Equals(other)))) msg += c+";";
+                                //    Debug.LogError(msg);
+                                //    Print();
+
+                                //    return null;
+                                //}
+
+                            }
+                        
+                        //catch
+                        //{
+                        //    string msg = "Double node in queue: " + start + "->" + target + "\n";
+                        //    foreach (var node in nodesQueue) msg += "->" + node;
+                        //    Debug.LogError(msg);
+                        //}
+>>>>>>> Stashed changes
                     }
                     
                 }
                 
-                if (breadCrump.Equals(target))
+                if (breadCrump.Equals(start))
                 {
                     List<Coordinates> path = new List<Coordinates>();
                     path.Add(breadCrump);
@@ -174,10 +213,9 @@ namespace Maze
                         breadCrump = breadCrump.Origin;
                         path.Add(breadCrump);                        
                     }
-                    path.Reverse();
 #if _DEBUG
                     watch.Stop();
-                    Debug.Log("AStar path find time: " + watch.ElapsedMilliseconds / 1000f);
+                    Debug.Log("AStar path find time (in ticks): " + watch.ElapsedTicks);
 #endif
                     return path;
 
@@ -187,7 +225,7 @@ namespace Maze
 #endif
                 return null;
             }
-            private int Heuristic(Coordinates node1, Coordinates node2) =>  Mathf.Abs(node1.X - node2.X) + Mathf.Abs(node1.Y - node2.Y);         
+           
             public List<Coordinates> BreadthFirstSearch(Coordinates start, Coordinates target)
             {
 #if _DEBUG
@@ -234,7 +272,7 @@ namespace Maze
                     pathList.Reverse();
 #if _DEBUG
                     watch.Stop();
-                    Debug.Log("Path find time: " + watch.ElapsedMilliseconds / 1000f);
+                    Debug.Log("Path find time (in ticks): " + watch.ElapsedTicks);
 #endif
                     return pathList;
                 }
