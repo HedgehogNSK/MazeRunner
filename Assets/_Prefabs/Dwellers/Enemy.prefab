@@ -47,7 +47,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   baseSpeed: 1.5
-  speedDamper: 0.7
+  speedDamper: 0.9
+  targetCharacter: {fileID: 0}
 --- !u!61 &3558485685295703058
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -84,7 +85,7 @@ Rigidbody2D:
   m_GameObject: {fileID: 3197078981648146999}
   m_BodyType: 1
   m_Simulated: 1
-  m_UseFullKinematicContacts: 0
+  m_UseFullKinematicContacts: 1
   m_UseAutoMass: 0
   m_Mass: 0.1
   m_LinearDrag: 0

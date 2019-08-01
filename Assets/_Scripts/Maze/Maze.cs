@@ -150,7 +150,7 @@ namespace Maze
 
         public Bounds GetBounds()
         {            
-            Bounds b = new Bounds(Size.GetCenter.ToWorld- Vector3.one.XY(),new Vector2(Size.X, Size.Y));
+            Bounds b = new Bounds(Size.GetCenter.ToWorld- Vector2.one,new Vector2(Size.X, Size.Y));
             return b;
         }
 

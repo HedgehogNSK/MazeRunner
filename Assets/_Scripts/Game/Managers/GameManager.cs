@@ -66,6 +66,7 @@ namespace Maze.Game
             if (Input.GetKeyDown(KeyCode.Space))
             {
                StartCoroutine( RestartGame());
+
             }
 #endif
             if(player)
@@ -96,13 +97,13 @@ namespace Maze.Game
         IEnumerator LoadGame()
         {   
           
-#if _DEBUG
+#if _CALC_LOAD_TIME
                 var watch = System.Diagnostics.Stopwatch.StartNew();
                 watch.Start();
 #endif
             
             yield return StartCoroutine(LoadMaze());
-#if _DEBUG
+#if _CALC_LOAD_TIME
               watch.Stop();
               Debug.Log("Labyrinth generation time: " + watch.ElapsedMilliseconds / 1000f);
 #endif
@@ -110,14 +111,14 @@ namespace Maze.Game
 
             LevelSettings level = LevelFactory.Create(PlayerPrefs.GetInt("level", 1));
             player = DwellerFactory.Create(playerPrefab, maze.Size.GetCenter);         
-            coins = DwellerFactory.CreateSet(coinPrefab, level,transform, player.Coords);
+            coins = DwellerFactory.CreateSet(coinPrefab, level,transform, player);
             yield return new WaitForEndOfFrame();
-#if _DEBUG
+#if _CALC_LOAD_TIME
                 watch = System.Diagnostics.Stopwatch.StartNew();
                 watch.Start();
 #endif
-            enemies = DwellerFactory.CreateSet(enemyPrefab, level,transform, player.Coords);
-#if _DEBUG
+            enemies = DwellerFactory.CreateSet(enemyPrefab, level,transform, player);
+#if _CALC_LOAD_TIME
               watch.Stop();
               Debug.Log("Enemies spawn time: " + watch.ElapsedMilliseconds / 1000f);
 #endif
@@ -176,7 +177,7 @@ namespace Maze.Game
             foreach (var enemy in enemies)
                 if (enemy) Destroy(enemy.gameObject);
             enemies.Clear();
-            
+
         }
 
         IEnumerator RestartGame()

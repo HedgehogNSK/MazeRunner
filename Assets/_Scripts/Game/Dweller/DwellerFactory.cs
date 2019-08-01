@@ -6,38 +6,7 @@ namespace Maze.Game
 {
     public static class DwellerFactory
     {
- 
-       
-        public static List<T> CreateSet<T>(T prefab, int amount, int minDistanceBetween, Transform parent =null) where T: Dweller
-        {
-            if(Dweller.Map==null)
-            {
-                Debug.LogError("Before create maze dwellers you should add maze map");
-                return null;
-            }
-
-            if(prefab is PlayerController)
-            {
-                Debug.LogError("It's impossible to create set of players, use Create method instead.");
-                return null;
-            }
-            
-            var spawnPoints = Dweller.Map.GenerateSpawnPoints(minDistanceBetween,Explorer.Graph.Distance.Between);
-
-            List<T> dwellers = new List<T>();
-            T dweller;
-            for (int i = 0; i != amount; i++)
-            {
-                int id = Random.Range(0, spawnPoints.Count);
-                dweller = Create(prefab, spawnPoints[id]);
-                dweller.transform.parent = parent;
-                dwellers.Add(dweller);
-                spawnPoints.RemoveAt(id);
-            }
-            return dwellers;
-        }
-
-        public static List<T> CreateSet<T>(T prefab, LevelSettings settings, Transform parent = null, Coordinates startPoint= null) where T:Dweller
+        public static List<T> CreateSet<T>(T prefab, LevelSettings settings, Transform parent = null, Dweller target= null) where T:Dweller
         {
             if (Dweller.Map == null)
             {
@@ -63,7 +32,7 @@ namespace Maze.Game
             }
                 
 
-            var spawnPoints = Dweller.Map.GenerateSpawnPoints(distanceBetween,(prefab is Enemy)?Explorer.Graph.Distance.From : Explorer.Graph.Distance.Between ,startPoint); 
+            var spawnPoints = Dweller.Map.GenerateSpawnPoints(distanceBetween,(prefab is Enemy)?Explorer.Graph.Distance.From : Explorer.Graph.Distance.Between ,target.Coords); 
 
             List<T> dwellers = new List<T>();
             T dweller;
@@ -75,7 +44,7 @@ namespace Maze.Game
                 dwellers.Add(dweller);
                 if(dweller is Enemy)
                 {
-                    (dweller as Enemy).SetParams(settings.AlertRange, settings.ChaseRange);
+                    (dweller as Enemy).SetParams(settings.AlertRange, settings.ChaseRange, target);
                 }
                 spawnPoints.RemoveAt(id);
             }

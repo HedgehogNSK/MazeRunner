@@ -29,13 +29,7 @@ namespace Maze.Game
 
         static public event Action<Dweller> Gotcha;
 
-        MovingCharacter targetCharacter;
-
-        protected override void Awake()
-        {
-            base.Awake();
-            OnChangingPosition += OnOtherCharMove;
-        }
+        public Dweller targetCharacter;
 
         public override void Init(Coordinates startPosition)
         {
@@ -46,24 +40,28 @@ namespace Maze.Game
             }
         }
 
-        public void SetParams(float alertRange, float chaseRange)
+        public void SetParams(float alertRange, float chaseRange, Dweller target)
         {
             this.alertRange = alertRange;
             this.chaseRange = chaseRange;
+            targetCharacter = target;
         }
         protected override void FixedUpdate()
         {
             Move();
         }
 
+     
+       
         protected override void Move()
         {
-            CheckMoveState(targetCharacter);
+
+            CheckMoveState(targetCharacter);     
             SearchPath(targetCharacter);
 
             if (movePath.Any())
             {              
-                Vector2 difference = rigid.position - (Vector2)movePath[0].ToWorld; 
+                Vector2 difference = rigid.position - movePath[0].ToWorld; 
                 if (difference.sqrMagnitude < 1e-4)
                     movePath.RemoveAt(0);
 
@@ -97,7 +95,7 @@ namespace Maze.Game
         {
             Vector2 speedVertex = Speed * GetDirectionTo(coords);
 
-            bool getOverTargetInNextFram =((Vector2)coords.ToWorld - rigid.position).sqrMagnitude*2 < cachedDistance.sqrMagnitude;                    
+            bool getOverTargetInNextFram =(coords.ToWorld - rigid.position).sqrMagnitude*2 < cachedDistance.sqrMagnitude;                    
             if(getOverTargetInNextFram && coords.Equals(cachedCoords))
             {
                 rigid.MovePosition(Coords.ToWorld);
@@ -105,18 +103,18 @@ namespace Maze.Game
             }
             
             cachedCoords = coords;
-            cachedDistance = (Vector2)Coords.ToWorld - rigid.position;
+            cachedDistance = Coords.ToWorld - rigid.position;
             return speedVertex;
         }
         private Vector2 GetDirectionTo(Coordinates coords)
         {
-            Vector2 Vertex = coords.ToWorld - transform.position;
+            Vector2 Vertex = coords.ToWorld - rigid.position;
             
             if (Mathf.Abs(Vertex.x) <= 1e-4f && Mathf.Abs(Vertex.y) <= 1e-4f) return Vector2.zero;
             return Vertex.normalized;
         }
 
-        public void CheckMoveState(MovingCharacter target)
+        public void CheckMoveState(Dweller target)
         {
             if (!target) return;
             //Check if target has gone to far
@@ -133,10 +131,13 @@ namespace Maze.Game
             {
                 pursuit = true;
                 movePath.Clear();
-                currentSpeed = target.Speed * speedDamper;
+                if (target is MovingCharacter)
+                {
+                    currentSpeed = (target as MovingCharacter).Speed * speedDamper;
+                }
             }
         }
-        private void SearchPath(MovingCharacter target)
+        private void SearchPath(Dweller target)
         {
 
 
@@ -155,18 +156,10 @@ namespace Maze.Game
 
 
         }
-        private void OnOtherCharMove(MovingCharacter target)
-        {
-            if (target is PlayerController)
-            {
-                this.targetCharacter = target;
-            }
 
-        }
 
         public void StopGame()
         {
-            OnChangingPosition -= OnOtherCharMove;
             targetCharacter = null;
             currentSpeed = 0;
             movePath.Clear();
@@ -175,14 +168,10 @@ namespace Maze.Game
         {
             if (collision.gameObject.tag != "Player") return;
 
-            OnChangingPosition -= OnOtherCharMove;
             movePath.Clear();
             Gotcha?.Invoke(this);
         }
 
-        private void OnDestroy()
-        {
-            OnChangingPosition -= OnOtherCharMove;
-        }
+
     }
 }
