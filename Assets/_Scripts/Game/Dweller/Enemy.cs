@@ -146,17 +146,7 @@ namespace Maze.Game
 
             if (target && pursuit)
             {
-                //if (movePath.IsAny())
-                //{
-                //    IEnumerable<Coordinates> newPath = Map.AStar(movePath.Last(), target.Coords);
-                //    IEnumerable<Coordinates> tmp = movePath.Intersect(newPath);
-                //    tmp = tmp.Except(new Coordinates[] { tmp.FirstOrDefault() });
-                //    movePath = movePath.Union(newPath).Except(tmp).Distinct().ToList();
-
-                //}
-                //else
-                    movePath = Map.AStar(Coords, target.Coords);
-                
+                movePath = Map.AStar(Coords, target.Coords);                
             }
             else
             {

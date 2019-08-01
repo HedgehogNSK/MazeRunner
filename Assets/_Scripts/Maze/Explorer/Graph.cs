@@ -144,32 +144,42 @@ namespace Maze
                         int newCost = 1 + current.PathCost;
                         BreadCrump next = current.FindCrump(neighbour);
 
-                            if (next == null || newCost < next.PathCost)
+                        if (next == null || newCost < next.PathCost)
+                        {
+                            next = new BreadCrump(neighbour, current, newCost);
+                            BreadCrump tmp = nodesQueue.SingleOrDefault(node => node.Equals(next));
+                            int priority = newCost + Heuristic(neighbour, start);                          
+                           
+                            if (tmp != null)
                             {
-                                next = new BreadCrump(neighbour, current, newCost);
-                                //next = nodesQueue.SingleOrDefault(node => node.Equals(neighbour) && nodesQueue.Any(other => other.Equals(neighbour) && node.PathCost < other.PathCost) );
-                                int priority = newCost + Heuristic(neighbour, start);
-                                //try
-                                //{
+                                if (tmp.PathCost > next.PathCost)
+                                {
+                                    nodesQueue.Remove(tmp);
                                     nodesQueue.Enqueue(next, priority);
-                                //}
-                                //catch
-                                //{
-                                //    string msg = "Search path: " + start + "->" + target + "\n";
-                                //    foreach (var node in nodesQueue)
-                                //    {
-                                //        msg += ";" + node;
-                                //    }
-                                //    msg = "\n";
-                                //    foreach (var c in nodesQueue.Where(node => nodesQueue.Any(other => other != node && node.Equals(other)))) msg += c+";";
-                                //    Debug.LogError(msg);
-                                //    Print();
 
-                                //    return null;
-                                //}
-
+                                }
                             }
-                        
+                            else
+                                nodesQueue.Enqueue(next, priority);
+                            
+                            //}
+                            //catch
+                            //{
+                            //    string msg = "Search path: " + start + "->" + target + "\n";
+                            //    foreach (var node in nodesQueue)
+                            //    {
+                            //        msg += ";" + node;
+                            //    }
+                            //    msg = "\n";
+                            //    foreach (var c in nodesQueue.Where(node => nodesQueue.Any(other => other != node && node.Equals(other)))) msg += c+";";
+                            //    Debug.LogError(msg);
+                            //    Print();
+
+                            //    return null;
+                            //}
+
+                        }
+
                         //catch
                         //{
                         //    string msg = "Double node in queue: " + start + "->" + target + "\n";
@@ -178,7 +188,7 @@ namespace Maze
                         //}
 
                     }
-                    
+
                 }
                 
                 if (breadCrump.Equals(start))
