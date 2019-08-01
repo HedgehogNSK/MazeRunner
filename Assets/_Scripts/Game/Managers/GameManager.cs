@@ -57,11 +57,8 @@ namespace Maze.Game
             camTransform = Camera.main.transform;
             viewportHalfDelta = (cam.ViewportToWorldPoint(Vector3.one) - cam.ViewportToWorldPoint(Vector3.zero))/(2* visibleBehindBoundsRate);
             SceneManager.sceneLoaded += OnSceneLoad;
-
         }
-
-      
-        // Update is called once per frame
+     
         void Update()
         {
 
@@ -98,7 +95,7 @@ namespace Maze.Game
         }
         IEnumerator LoadGame()
         {   
-            maze = Instantiate(mazePrefab) as Maze;
+          
 #if _DEBUG
                 var watch = System.Diagnostics.Stopwatch.StartNew();
                 watch.Start();

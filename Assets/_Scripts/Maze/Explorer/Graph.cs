@@ -118,6 +118,9 @@ namespace Maze
 
             private int Heuristic(Coordinates node1, Coordinates node2) => Mathf.Abs(node1.X - node2.X) + Mathf.Abs(node1.Y - node2.Y);
 
+            int searches = 0;
+            double ticksAvg = 0;
+            double ticksMax = 0;
             public List<Coordinates> AStar(Coordinates start , Coordinates target)
             {
 
@@ -144,48 +147,22 @@ namespace Maze
                         int newCost = 1 + current.PathCost;
                         BreadCrump next = current.FindCrump(neighbour);
 
+                        
                         if (next == null || newCost < next.PathCost)
                         {
                             next = new BreadCrump(neighbour, current, newCost);
-                            BreadCrump tmp = nodesQueue.SingleOrDefault(node => node.Equals(next));
-                            int priority = newCost + Heuristic(neighbour, start);                          
-                           
-                            if (tmp != null)
-                            {
-                                if (tmp.PathCost > next.PathCost)
-                                {
-                                    nodesQueue.Remove(tmp);
-                                    nodesQueue.Enqueue(next, priority);
-
-                                }
-                            }
-                            else
-                                nodesQueue.Enqueue(next, priority);
                             
-                            //}
-                            //catch
-                            //{
-                            //    string msg = "Search path: " + start + "->" + target + "\n";
-                            //    foreach (var node in nodesQueue)
-                            //    {
-                            //        msg += ";" + node;
-                            //    }
-                            //    msg = "\n";
-                            //    foreach (var c in nodesQueue.Where(node => nodesQueue.Any(other => other != node && node.Equals(other)))) msg += c+";";
-                            //    Debug.LogError(msg);
-                            //    Print();
+                            int priority = newCost + Heuristic(neighbour, start);
 
-                            //    return null;
-                            //}
+                            BreadCrump tmp = nodesQueue.FirstOrDefault(node => node.Equals(neighbour));
+                            if (tmp == null || tmp.PathCost > next.PathCost)
+                            {
+                                if (tmp != null) nodesQueue.Remove(tmp);
+                                nodesQueue.Enqueue(next, priority);
 
+                            }
                         }
 
-                        //catch
-                        //{
-                        //    string msg = "Double node in queue: " + start + "->" + target + "\n";
-                        //    foreach (var node in nodesQueue) msg += "->" + node;
-                        //    Debug.LogError(msg);
-                        //}
 
                     }
 
@@ -202,6 +179,8 @@ namespace Maze
                     }
 #if _DEBUG
                     watch.Stop();
+                    searchTime++;
+                    
                     Debug.Log("AStar path find time (in ticks): " + watch.ElapsedTicks);
 #endif
                     return path;

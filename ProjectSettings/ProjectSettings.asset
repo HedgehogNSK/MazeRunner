@@ -608,6 +608,7 @@ PlayerSettings:
   webGLWasmStreaming: 0
   scriptingDefineSymbols:
     1: KEYBOARD
+    7: KEYBOARD
   platformArchitecture: {}
   scriptingBackend: {}
   il2cppCompilerConfiguration: {}
