@@ -142,29 +142,6 @@ namespace Maze
                     foreach(var neighbour in Neighbours(current))
                     {
                         int newCost = 1 + current.PathCost;
-<<<<<<< Updated upstream
-                        if(current.FindCrump(neighbour)==null || newCost < current.FindCrump(neighbour).PathCost)
-                        {
-                            BreadCrump next = new BreadCrump(neighbour, current, newCost);
-                            int priority = newCost + Heuristic(neighbour, target);
-                            try
-                            {
-                                nodesQueue.Enqueue(next, priority);                               
-                            }
-                            catch
-                            {                                
-                                string msg ="Search way from "+start +"->" + target +"\n";
-                                foreach(var nod in nodesQueue)
-                                {
-                                    
-                                    msg+="->"+nod;
-                                }
-                                Debug.LogError(msg);
-                                Print();
-                            }
-                        }
-=======
-
                         BreadCrump next = current.FindCrump(neighbour);
 
                             if (next == null || newCost < next.PathCost)
@@ -199,7 +176,7 @@ namespace Maze
                         //    foreach (var node in nodesQueue) msg += "->" + node;
                         //    Debug.LogError(msg);
                         //}
->>>>>>> Stashed changes
+
                     }
                     
                 }

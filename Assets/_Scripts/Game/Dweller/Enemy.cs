@@ -63,24 +63,26 @@ namespace Maze.Game
             SearchPath(targetCharacter);
 
             //If enemy becomes between first and second waypoint 
-            if (movePath.Count>1)
+            if (movePath.Count > 1)
             {
-                Vector2 pathDirection= (movePath[1] - movePath[0]).ToVector2;
-                Vector2 direction =  GetDirectionTo(movePath[0]);
+                Vector2 pathDirection = (movePath[1] - movePath[0]).ToVector2;
+                Vector2 direction = GetDirectionTo(movePath[0]);
 
-                if ( Mathf.Sign(direction.x) == -Mathf.Sign(pathDirection.x) && direction.y ==pathDirection.y ||
+                if (Mathf.Sign(direction.x) == -Mathf.Sign(pathDirection.x) && direction.y == pathDirection.y ||
                      Mathf.Sign(direction.y) == -Mathf.Sign(pathDirection.y) && direction.x == pathDirection.x)
                 {
                     movePath.RemoveAt(0);
                 }
             }
-           
-            if(movePath.Any())
+
+            if (movePath.Any())
             {
                 Vector2 velocity = CalcVelocity(movePath[0]);
                 if (velocity == Vector2.zero)
                 {                   
-                    movePath.RemoveAt(0);                  
+                    movePath.RemoveAt(0);
+                    if (movePath.Any())
+                        velocity = CalcVelocity(movePath[0]);
                 }
                 rigid.velocity = velocity;
             }           
@@ -144,15 +146,15 @@ namespace Maze.Game
 
             if (target && pursuit)
             {
-                if (movePath.IsAny())
-                {
-                    IEnumerable<Coordinates> newPath = Map.AStar(movePath.Last(), target.Coords);
-                    IEnumerable<Coordinates> tmp = movePath.Intersect(newPath);
-                    tmp = tmp.Except(new Coordinates[] { tmp.FirstOrDefault() });
-                    movePath = movePath.Union(newPath).Except(tmp).Distinct().ToList();
+                //if (movePath.IsAny())
+                //{
+                //    IEnumerable<Coordinates> newPath = Map.AStar(movePath.Last(), target.Coords);
+                //    IEnumerable<Coordinates> tmp = movePath.Intersect(newPath);
+                //    tmp = tmp.Except(new Coordinates[] { tmp.FirstOrDefault() });
+                //    movePath = movePath.Union(newPath).Except(tmp).Distinct().ToList();
 
-                }
-                else
+                //}
+                //else
                     movePath = Map.AStar(Coords, target.Coords);
                 
             }
@@ -161,6 +163,7 @@ namespace Maze.Game
                 if (!movePath.IsAny())
                 {
                     movePath = PatrolPath;
+                    
                 }
             }
             
