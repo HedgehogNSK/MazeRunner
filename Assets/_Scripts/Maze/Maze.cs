@@ -18,7 +18,7 @@ namespace Maze
 #pragma warning restore CS0649
         
         //For not ideal labyrinth
-        const float leakyRate = 0.8f;
+        const float leakyRate = 0.85f;
 
         public Coordinates Size => mazeSize;
         public Graph Map { get; private set; }
@@ -56,7 +56,6 @@ namespace Maze
             newCell.coords = coords;
             newCell.name = "MazeCell" + coords.X + "," + coords.Y;
             newCell.transform.parent = transform;
-            //For Camera in 0,0,0 make Labirinth in the center
             newCell.transform.localPosition = coords.ToWorld;
             return newCell;
         }
@@ -151,7 +150,7 @@ namespace Maze
 
         public Bounds GetBounds()
         {            
-            Bounds b = new Bounds(Size.GetCenter.ToWorld- Vector3.one.XY(),new Vector2(Size.X, Size.Y));
+            Bounds b = new Bounds(Size.GetCenter.ToWorld- Vector2.one,new Vector2(Size.X, Size.Y));
             return b;
         }
 

@@ -42,7 +42,7 @@ namespace Maze
             public bool ContainsEdge(Coordinates node1, Coordinates node2)
             {
                 Coordinates previous = null;
-                return graph.Any(branch => branch.Contains(node1) && branch.Contains(node2) 
+                return graph.Any(branch => branch.Contains(node1) && branch.Contains(node2)
                 && branch.Any(node =>
                 {
                     bool edgeIsSet = node.Equals(node1) && node2.Equals(previous) || node.Equals(node2) && node1.Equals(previous);
@@ -52,23 +52,36 @@ namespace Maze
                 );
 
             }
-            public IEnumerable<Coordinates> Neighbours(Coordinates vertice)
+            Dictionary<Coordinates, List<Coordinates>> cachedNeighbours= new Dictionary<Coordinates, List<Coordinates>>();
+            public List<Coordinates> Neighbours(Coordinates vertice)
             {
-                var branchesWithNode = graph.Where(branch => branch.Any(node => node.Equals(vertice)));
-                if (!branchesWithNode.IsAny()) return null;
-                List<Coordinates> neigbours = new List<Coordinates>();
-                foreach (var branch in branchesWithNode)
+
+                List<Coordinates> neighbours;
+                cachedNeighbours.TryGetValue(vertice, out neighbours);
+                if (neighbours == null)
                 {
-                    int i = graph.IndexOf(branch);
-                    int j = branch.IndexOf(vertice);
+                    neighbours = new List<Coordinates>(); 
+                    for (int i = 0; i < graph.Count; i++)
+                    {
+                        for (int j = 0; j < graph[i].Count; j++)
+                        {
+                            if (graph[i][j].Equals(vertice))
+                            {
+                                if (j != 0)
+                                {
+                                    neighbours.Add(graph[i][j - 1]);
+                                }
+                                if (j != graph[i].Count - 1)
+                                {
+                                    neighbours.Add(graph[i][j + 1]);
+                                }
 
-                    if (j != 0) neigbours.Add(graph[i][j - 1]);
-                    if (j != graph[i].Count - 1) neigbours.Add(graph[i][j + 1]);
-                    
-
-
+                            }
+                        }
+                    }
+                    cachedNeighbours[vertice] = neighbours;
                 }
-                return neigbours;
+                return neighbours;
             }
             public IEnumerable<Coordinates> NeighboursAround(Coordinates center, int range)
             {
@@ -115,89 +128,77 @@ namespace Maze
                 return true;
 
             }
-            public List<Coordinates> AStar(Coordinates start , Coordinates target)
+
+            private int Heuristic(Coordinates node1, Coordinates node2) => Mathf.Abs(node1.X - node2.X) + Mathf.Abs(node1.Y - node2.Y);
+       
+            
+            public List<Coordinates> AStar(Coordinates start, Coordinates target)
             {
 
-#if _DEBUG
-                var watch = System.Diagnostics.Stopwatch.StartNew();
-                watch.Start();
-#endif 
-                Queue<BreadCrump> nodes = new Queue<BreadCrump>();
-                
-                FastPriorityQueue<BreadCrump> nodesQueue =new FastPriorityQueue<BreadCrump>(2*VerticeAmount);
+                FastPriorityQueue<BreadCrump> nodesQueue = new FastPriorityQueue<BreadCrump>(VerticeAmount);
+                Dictionary<Coordinates, BreadCrump> guide = new Dictionary<Coordinates, BreadCrump>();
+
+                BreadCrump ariadnasThread = new BreadCrump(target,0);
+                nodesQueue.Enqueue(ariadnasThread, 0);
+                guide.Add(target, ariadnasThread);
                
-                BreadCrump breadCrump = new BreadCrump(start, null, 0);
-                nodesQueue.Enqueue(breadCrump,0);
-               
-                while(nodesQueue.IsValidQueue())
+                while (nodesQueue.IsAny())
                 {
                     BreadCrump current = nodesQueue.Dequeue();
-                    if (current.Equals(target))
+                    if (current.Equals(start))
                     {
-                        breadCrump = current;
+                        ariadnasThread = current;
                         break;
                     }
 
-                    foreach(var neighbour in Neighbours(current))
+                    foreach (var neighbour in Neighbours(current))
                     {
                         int newCost = 1 + current.PathCost;
-                        if(current.FindCrump(neighbour)==null || newCost < current.FindCrump(neighbour).PathCost)
+                       
+
+                        if (!guide.ContainsKey(neighbour) || newCost < guide[neighbour].PathCost)
                         {
-                            BreadCrump next = new BreadCrump(neighbour, current, newCost);
-                            int priority = newCost + Heuristic(neighbour, target);
-                            try
-                            {
-                                nodesQueue.Enqueue(next, priority);                               
-                            }
-                            catch
-                            {
-                                return null;
-                            }
+
+                            BreadCrump next = new BreadCrump(neighbour, newCost);
+                            guide[next] = current;
+                            int priority = newCost + Heuristic(neighbour, start);
+
+                            nodesQueue.Enqueue(next, priority);
 
                         }
+
                     }
-                    
+
                 }
-                
-                if (breadCrump.Equals(target))
+
+                if (ariadnasThread.Equals(start))
                 {
                     List<Coordinates> path = new List<Coordinates>();
-                    path.Add(breadCrump);
-                    while(breadCrump.Origin!=null)
+
+                    path.Add(ariadnasThread);
+                    while(!ariadnasThread.Equals(target))
                     {
-                        breadCrump = breadCrump.Origin;
-                        path.Add(breadCrump);                        
+                        ariadnasThread = guide[ariadnasThread];
+                        path.Add(ariadnasThread);
                     }
-                    path.Reverse();
-#if _DEBUG
-                    watch.Stop();
-                    Debug.Log("AStar path find time: " + watch.ElapsedMilliseconds / 1000f);
-#endif
                     return path;
 
                 }
-#if _DEBUG
-                watch.Stop();
-#endif
+
                 return null;
             }
-            private int Heuristic(Coordinates node1, Coordinates node2) =>  Mathf.Abs(node1.X - node2.X) + Mathf.Abs(node1.Y - node2.Y);         
             public List<Coordinates> BreadthFirstSearch(Coordinates start, Coordinates target)
             {
-#if _DEBUG
-                var watch = System.Diagnostics.Stopwatch.StartNew();
-                watch.Start();
-#endif
                 Queue<Coordinates> que = new Queue<Coordinates>();
                 Dictionary<Coordinates, Coordinates> path = new Dictionary<Coordinates, Coordinates>();
-                que.Enqueue(start);
-                path.Add(start, start);
+                que.Enqueue(target);
+                path.Add(target, target);
                 bool found = false;
                 while (que.Any())
                 {
                     Coordinates current = que.Dequeue();
 
-                    if (current.Equals(target))
+                    if (current.Equals(start))
                     {
                         found = true;
                         break;
@@ -216,25 +217,18 @@ namespace Maze
                 if (found)
                 {
                     List<Coordinates> pathList = new List<Coordinates>();
-                    pathList.Add(target);
+                    pathList.Add(start);
 
                     Coordinates value;
-                    while (path.TryGetValue(target, out value) && value != target)
+                    while (path.TryGetValue(start, out value) && value != start)
                     {
                         pathList.Add(value);
-                        target = value;
+                        start = value;
 
                     }
-                    pathList.Reverse();
-#if _DEBUG
-                    watch.Stop();
-                    Debug.Log("Path find time: " + watch.ElapsedMilliseconds / 1000f);
-#endif
+
                     return pathList;
                 }
-#if _DEBUG
-                watch.Stop();
-#endif
                 return null;
             }           
             

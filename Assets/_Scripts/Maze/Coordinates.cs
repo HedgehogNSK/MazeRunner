@@ -30,7 +30,7 @@ namespace Maze
             }
         }
 
-        public Vector3 ToWorld => new Vector3(X + 0.5f, Y + 0.5f,0);
+        public Vector2 ToWorld => new Vector2(X + 0.5f, Y + 0.5f);
         public static Coordinates FromWorld(Vector2 position)=> new Coordinates((int)position.x, (int)position.y);
         
         

@@ -48,11 +48,10 @@ namespace Hedge
                 counterTXT.text = number.ToShortNumber();
             }
 
-
             void TextCatcher(TextType txtType, object obj)
             {
                 if (!this || this.txtType != txtType) return;
-                //Проверка необходима здесь, т.к. объект может быть отключен в начале сцены, но информацию уже должен получать
+                //This check must be here, cause gameobject can be unactive, but it must get information already
                 if (!counterTXT) counterTXT = GetComponent<Text>();
                 if (counterTXT)
                 {

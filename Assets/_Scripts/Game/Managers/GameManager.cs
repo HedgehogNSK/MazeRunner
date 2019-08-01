@@ -57,11 +57,8 @@ namespace Maze.Game
             camTransform = Camera.main.transform;
             viewportHalfDelta = (cam.ViewportToWorldPoint(Vector3.one) - cam.ViewportToWorldPoint(Vector3.zero))/(2* visibleBehindBoundsRate);
             SceneManager.sceneLoaded += OnSceneLoad;
-
         }
-
-      
-        // Update is called once per frame
+     
         void Update()
         {
 
@@ -69,6 +66,7 @@ namespace Maze.Game
             if (Input.GetKeyDown(KeyCode.Space))
             {
                StartCoroutine( RestartGame());
+
             }
 #endif
             if(player)
@@ -89,33 +87,38 @@ namespace Maze.Game
                         camTransform.position.z
                );
         }
-
+      
+        IEnumerator LoadMaze()
+        {
+            maze = Instantiate(mazePrefab) as Maze;
+            maze.Generate();
+            yield return null;
+        }
         IEnumerator LoadGame()
         {   
-            maze = Instantiate(mazePrefab) as Maze;
-            yield return new WaitForEndOfFrame();
-#if _DEBUG
+          
+#if _CALC_LOAD_TIME
                 var watch = System.Diagnostics.Stopwatch.StartNew();
                 watch.Start();
 #endif
-            maze.Generate();
-#if _DEBUG
+            
+            yield return StartCoroutine(LoadMaze());
+#if _CALC_LOAD_TIME
               watch.Stop();
               Debug.Log("Labyrinth generation time: " + watch.ElapsedMilliseconds / 1000f);
 #endif
             Dweller.Map = maze.Map;
 
             LevelSettings level = LevelFactory.Create(PlayerPrefs.GetInt("level", 1));
-            player = DwellerFactory.Create(playerPrefab, maze.Size.GetCenter);
-            yield return new WaitForEndOfFrame();           
-            coins = DwellerFactory.CreateSet(coinPrefab, level,transform, player.Coords);
+            player = DwellerFactory.Create(playerPrefab, maze.Size.GetCenter);         
+            coins = DwellerFactory.CreateSet(coinPrefab, level,transform, player);
             yield return new WaitForEndOfFrame();
-#if _DEBUG
+#if _CALC_LOAD_TIME
                 watch = System.Diagnostics.Stopwatch.StartNew();
                 watch.Start();
 #endif
-            enemies = DwellerFactory.CreateSet(enemyPrefab, level,transform, player.Coords);
-#if _DEBUG
+            enemies = DwellerFactory.CreateSet(enemyPrefab, level,transform, player);
+#if _CALC_LOAD_TIME
               watch.Stop();
               Debug.Log("Enemies spawn time: " + watch.ElapsedMilliseconds / 1000f);
 #endif
@@ -174,7 +177,7 @@ namespace Maze.Game
             foreach (var enemy in enemies)
                 if (enemy) Destroy(enemy.gameObject);
             enemies.Clear();
-            
+
         }
 
         IEnumerator RestartGame()

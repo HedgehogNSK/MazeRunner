@@ -21,7 +21,7 @@ namespace Maze.Game
 
         List<Coordinates> movePath = new List<Coordinates>();
         IEnumerable<Coordinates> patrolPoints = new List<Coordinates>();
-        Coordinates cachedCoords = new Coordinates(int.MinValue, int.MinValue);
+       
 
         bool Alarm(Coordinates other) => Coords.SqrDistance(other) < alertRange * alertRange;
         bool IsObjToFarToChase(Coordinates other) => Coords.SqrDistance(other) > chaseRange * chaseRange;
@@ -29,90 +29,99 @@ namespace Maze.Game
 
         static public event Action<Dweller> Gotcha;
 
-        MovingCharacter targetCharacter;
-
-        protected override void Awake()
-        {
-            base.Awake();
-            OnChangingPosition += OnOtherCharMove;
-        }
+        public Dweller targetCharacter;
 
         public override void Init(Coordinates startPosition)
         {
-           base.Init(startPosition);
-           if(Map!=null)
+            base.Init(startPosition);
+            if (Map != null)
             {
                 patrolPoints = Map.NeighboursAround(startPosition, borderPatrolSize);
             }
         }
 
-        public void SetParams(float alertRange, float chaseRange)
+        public void SetParams(float alertRange, float chaseRange, Dweller target)
         {
             this.alertRange = alertRange;
             this.chaseRange = chaseRange;
+            targetCharacter = target;
         }
         protected override void FixedUpdate()
         {
-            CheckMoveState(targetCharacter);
-            SearchPath(targetCharacter);
-            Move(); 
+            Move();
         }
 
-
+     
+       
         protected override void Move()
         {
-            //If enemy becomes between first and second waypoint 
-            if(movePath.Count>1)
-            {
-                Vector2 pathDirection= (movePath[1] - movePath[0]).ToVector2;
-                Vector2 direction =  GetDirectionTo(movePath[0]);
 
-                if ( Mathf.Sign(direction.x) == -Mathf.Sign(pathDirection.x) && direction.y ==pathDirection.y ||
-                     Mathf.Sign(direction.y) == -Mathf.Sign(pathDirection.y) && direction.x == pathDirection.x)
-                {
+            CheckMoveState(targetCharacter);     
+            SearchPath(targetCharacter);
+
+            if (movePath.Any())
+            {              
+                Vector2 difference = rigid.position - movePath[0].ToWorld; 
+                if (difference.sqrMagnitude < 1e-4)
                     movePath.RemoveAt(0);
+
+                Vector2 velocity =Vector2.zero;
+                
+                //If enemy is between current and next waypoint, than remove current waypoint
+                if (movePath.Count > 1)
+                {
+                    Vector2 pathDirection = (movePath[1] - movePath[0]).ToVector2;
+                    Vector2 directionToCellCenter = GetDirectionTo(movePath[0]);
+
+                    if (Mathf.Sign(directionToCellCenter.x) == -Mathf.Sign(pathDirection.x) && directionToCellCenter.y == pathDirection.y ||
+                         Mathf.Sign(directionToCellCenter.y) == -Mathf.Sign(pathDirection.y) && directionToCellCenter.x == pathDirection.x)
+                    {                       
+                        movePath.RemoveAt(0);
+                    }
                 }
+                if (movePath.Any())
+                {
+                    velocity = CalcVelocity(movePath[0]);
+                }
+
+                rigid.velocity = velocity;
+
             }
-            if (movePath.Count != 0)
-            {
-                rigid.velocity = CalcVelocity(GetDirectionTo(movePath[0]), movePath[0]);
-                if (rigid.velocity == Vector2.zero)
-                {
-                    movePath.RemoveAt(0);
-                }
-            }           
         }
-        
-        private Vector2 CalcVelocity(Vector2 direction, Coordinates coords)
-        {
-            Vector2 speedVertex = Speed * direction;            
 
-            //Overjump check
-            if (cachedCoords.Equals(coords) && (Mathf.Sign(rigid.velocity.x) != Mathf.Sign(speedVertex.x) || Mathf.Sign(rigid.velocity.y) != Mathf.Sign(speedVertex.y)))
+        Coordinates cachedCoords;
+        Vector2 cachedDistance = Vector2.zero;
+        private Vector2 CalcVelocity(Coordinates coords)
+        {
+            Vector2 speedVertex = Speed * GetDirectionTo(coords);
+
+            bool getOverTargetInNextFram =(coords.ToWorld - rigid.position).sqrMagnitude*2 < cachedDistance.sqrMagnitude;                    
+            if(getOverTargetInNextFram && coords.Equals(cachedCoords))
             {
-                rigid.MovePosition(coords.ToWorld);
+                rigid.MovePosition(Coords.ToWorld);
                 speedVertex = Vector2.zero;
             }
-            cachedCoords = movePath[0];
+            
+            cachedCoords = coords;
+            cachedDistance = Coords.ToWorld - rigid.position;
             return speedVertex;
         }
-
         private Vector2 GetDirectionTo(Coordinates coords)
         {
-            Vector2 Vertex = coords.ToWorld - transform.position;
+            Vector2 Vertex = coords.ToWorld - rigid.position;
             
-            if (Mathf.Abs(Vertex.x) <= 0.001f && Mathf.Abs(Vertex.y) <= 0.001f) return Vector2.zero;
+            if (Mathf.Abs(Vertex.x) <= 1e-4f && Mathf.Abs(Vertex.y) <= 1e-4f) return Vector2.zero;
             return Vertex.normalized;
         }
 
-        public void CheckMoveState(MovingCharacter target)
+        public void CheckMoveState(Dweller target)
         {
             if (!target) return;
             //Check if target has gone to far
             if (IsObjToFarToChase(target.Coords) && pursuit)
             {
                 pursuit = false;
-                movePath.Clear();                    
+                movePath.Clear();
                 currentSpeed = baseSpeed;
                 return;
             }
@@ -121,66 +130,48 @@ namespace Maze.Game
             if (Alarm(target.Coords) && !pursuit)
             {
                 pursuit = true;
-                movePath.Clear();              
-                currentSpeed = target.Speed * speedDamper;
+                movePath.Clear();
+                if (target is MovingCharacter)
+                {
+                    currentSpeed = (target as MovingCharacter).Speed * speedDamper;
+                }
             }
         }
-       
-        private void OnOtherCharMove(MovingCharacter target)
+        private void SearchPath(Dweller target)
         {
-            if (target is PlayerController)
-            {
-                this.targetCharacter = target;
-            }
 
-        }
-
-        private void SearchPath(MovingCharacter target)
-        {
-            
 
             if (target && pursuit)
             {
-                if (movePath.IsAny())
-                {
-                    IEnumerable<Coordinates> newPath = Map.AStar(movePath.Last(), target.Coords);
-                    IEnumerable<Coordinates> tmp = movePath.Intersect(newPath);
-                    tmp = tmp.Except(new Coordinates[] { tmp.FirstOrDefault() });
-                    movePath = movePath.Union(newPath).Except(tmp).Distinct().ToList();
-
-                }
-                else
-                    movePath = Map.AStar(Coords, target.Coords);
-                
+                movePath = Map.AStar(Coords, target.Coords);
             }
             else
             {
                 if (!movePath.IsAny())
                 {
                     movePath = PatrolPath;
+
                 }
             }
-            
+
 
         }
 
+
         public void StopGame()
         {
-            OnChangingPosition -= OnOtherCharMove;
+            targetCharacter = null;
+            currentSpeed = 0;
             movePath.Clear();
         }
         private void OnCollisionEnter2D(Collision2D collision)
         {
             if (collision.gameObject.tag != "Player") return;
 
-            OnChangingPosition -= OnOtherCharMove;
             movePath.Clear();
             Gotcha?.Invoke(this);
         }
 
-        private void OnDestroy()
-        {
-            OnChangingPosition -= OnOtherCharMove;
-        }
+
     }
 }
